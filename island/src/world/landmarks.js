@@ -10,18 +10,19 @@ export function buildLighthouse(mats, parent) {
   parent.add(g);
 
   put(g, roundedBox(4.2, 0.55, 4.2, 0.25), mats.get(P.sand), 0, 0, 0, { cast: false });
-  put(g, new THREE.CylinderGeometry(1.35, 1.7, 7.2, 16), mats.get(P.lhWhite), 0, 3.6, 0);
-  put(g, new THREE.CylinderGeometry(1.45, 1.45, 1.4, 16), mats.get(P.lhRed), 0, 2.2, 0);
-  put(g, new THREE.CylinderGeometry(1.45, 1.45, 1.4, 16), mats.get(P.lhRed), 0, 5.0, 0);
+  // ~12 m harbor light — clearly taller than village canopy
+  put(g, new THREE.CylinderGeometry(1.2, 1.55, 11, 16), mats.get(P.lhWhite), 0, 5.5, 0);
+  put(g, new THREE.CylinderGeometry(1.3, 1.3, 1.5, 16), mats.get(P.lhRed), 0, 2.8, 0);
+  put(g, new THREE.CylinderGeometry(1.3, 1.3, 1.5, 16), mats.get(P.lhRed), 0, 7.4, 0);
 
-  const lantern = put(g, new THREE.CylinderGeometry(1.1, 1.1, 1.6, 12, 1, true), mats.get(P.glass), 0, 7.8, 0);
+  const lantern = put(g, new THREE.CylinderGeometry(1.0, 1.0, 1.6, 12, 1, true), mats.get(P.glass), 0, 11.6, 0);
   lantern.material = mats.window;
 
-  const bulb = put(g, new THREE.SphereGeometry(0.45, 12, 10), mats.bulb, 0, 7.8, 0, { dynamic: true });
-  put(g, new THREE.ConeGeometry(1.35, 1.1, 16), mats.get(P.lhRed), 0, 9.0, 0);
+  const bulb = put(g, new THREE.SphereGeometry(0.45, 12, 10), mats.bulb, 0, 11.6, 0, { dynamic: true });
+  put(g, new THREE.ConeGeometry(1.25, 1.1, 16), mats.get(P.lhRed), 0, 12.8, 0);
 
   const beam = new THREE.SpotLight('#ffd9a0', 0, 90, Math.PI / 7, 0.45, 1.2);
-  beam.position.set(0, 7.8, 0);
+  beam.position.set(0, 11.6, 0);
   beam.target.position.set(18, 1, 8);
   g.add(beam);
   g.add(beam.target);
@@ -74,7 +75,7 @@ function house(mats, parent, x, z, opts) {
   put(g, roundedBox(w, h, d, 0.18), mats.get(wall), 0, 0, 0);
   const roofMesh = put(g, gableRoof(w + 0.35, d + 0.2, rh), mats.get(roof), 0, h - 0.05, 0);
   roofMesh.castShadow = true;
-  put(g, roundedBox(0.55, 0.9, 0.08, 0.05), mats.get(P.woodDark), 0, 0, d / 2 + 0.02);
+  put(g, roundedBox(0.7, 1.55, 0.08, 0.05), mats.get(P.woodDark), 0, 0, d / 2 + 0.02);
   put(g, roundedBox(0.7, 0.7, 0.08, 0.05), mats.window, -w * 0.28, h * 0.45, d / 2 + 0.02);
   put(g, roundedBox(0.7, 0.7, 0.08, 0.05), mats.window, w * 0.28, h * 0.45, d / 2 + 0.02);
   // 百叶窗与门廊台阶
@@ -200,13 +201,13 @@ export function buildDecor(mats, parent) {
     const r = 27.5 + rnd() * 2.5;
     const x = Math.cos(a) * r;
     const z = Math.sin(a) * r;
-    put(parent, new THREE.CylinderGeometry(0.05, 0.06, 2.8, 6), mats.get(P.wood), x, LEVEL.sand + 1.4, z);
+    put(parent, new THREE.CylinderGeometry(0.04, 0.05, 1.6, 6), mats.get(P.wood), x, LEVEL.sand + 0.8, z);
     const flag = put(
       parent,
-      new THREE.PlaneGeometry(0.9, 0.55),
+      new THREE.PlaneGeometry(0.55, 0.35),
       mats.get(P.cloth[i % P.cloth.length]),
-      x + 0.45,
-      LEVEL.sand + 2.5,
+      x + 0.28,
+      LEVEL.sand + 1.45,
       z,
       { cast: false, dynamic: true },
     );

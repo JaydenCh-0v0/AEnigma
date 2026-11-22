@@ -21,21 +21,21 @@ export function buildMarket(mats, parent) {
     g.rotation.y = rot;
     parent.add(g);
 
-    put(g, roundedBox(2.4, 0.9, 1.6, 0.12), mats.get(P.wood), 0, 0, 0);
-    put(g, roundedBox(2.6, 0.08, 1.8, 0.04), mats.get(cloth), 0, 1.55, 0);
-    put(g, new THREE.CylinderGeometry(0.06, 0.07, 1.7, 6), mats.get(P.woodDark), -1.05, 0.85, -0.65);
-    put(g, new THREE.CylinderGeometry(0.06, 0.07, 1.7, 6), mats.get(P.woodDark), 1.05, 0.85, -0.65);
-    put(g, new THREE.CylinderGeometry(0.06, 0.07, 1.7, 6), mats.get(P.woodDark), -1.05, 0.85, 0.65);
-    put(g, new THREE.CylinderGeometry(0.06, 0.07, 1.7, 6), mats.get(P.woodDark), 1.05, 0.85, 0.65);
+    put(g, roundedBox(1.8, 0.85, 1.2, 0.1), mats.get(P.wood), 0, 0, 0);
+    put(g, roundedBox(2.0, 0.08, 1.4, 0.04), mats.get(cloth), 0, 2.05, 0);
+    put(g, new THREE.CylinderGeometry(0.055, 0.065, 2.2, 6), mats.get(P.woodDark), -0.8, 1.1, -0.5);
+    put(g, new THREE.CylinderGeometry(0.055, 0.065, 2.2, 6), mats.get(P.woodDark), 0.8, 1.1, -0.5);
+    put(g, new THREE.CylinderGeometry(0.055, 0.065, 2.2, 6), mats.get(P.woodDark), -0.8, 1.1, 0.5);
+    put(g, new THREE.CylinderGeometry(0.055, 0.065, 2.2, 6), mats.get(P.woodDark), 0.8, 1.1, 0.5);
 
     // 摊上小货
     for (let i = 0; i < 4; i++) {
-      const bx = -0.7 + i * 0.45;
-      put(g, roundedBox(0.28, 0.22, 0.28, 0.04), mats.get(P.cloth[i % P.cloth.length]), bx, 0.95, 0.1, {
+      const bx = -0.55 + i * 0.35;
+      put(g, roundedBox(0.22, 0.18, 0.22, 0.04), mats.get(P.cloth[i % P.cloth.length]), bx, 0.9, 0.08, {
         cast: false,
       });
     }
-    put(g, new THREE.SphereGeometry(0.16, 8, 6), mats.bulb, 0, 1.85, 0);
+    put(g, new THREE.SphereGeometry(0.14, 8, 6), mats.bulb, 0, 2.35, 0);
   }
 }
 
@@ -59,11 +59,11 @@ export function buildHomeExtras(mats, parent) {
     // 烟囱
     put(g, roundedBox(0.45, 1.1, 0.45, 0.06), mats.get(P.rock), 0.9, 2.5, -0.4);
 
-    // 前篱笆
+    // 前篱笆（约齐腰）
     for (let i = -2; i <= 2; i++) {
-      put(g, new THREE.BoxGeometry(0.12, 0.55, 0.12), mats.get(P.wood), i * 0.55, 0.28, 2.2, { cast: false });
+      put(g, new THREE.BoxGeometry(0.12, 0.95, 0.12), mats.get(P.wood), i * 0.55, 0.48, 2.2, { cast: false });
     }
-    put(g, new THREE.BoxGeometry(2.4, 0.08, 0.08), mats.get(P.woodDark), 0, 0.48, 2.2, { cast: false });
+    put(g, new THREE.BoxGeometry(2.4, 0.08, 0.08), mats.get(P.woodDark), 0, 0.9, 2.2, { cast: false });
 
     // 信箱
     put(g, new THREE.CylinderGeometry(0.05, 0.06, 0.9, 6), mats.get(P.woodDark), 1.7, 0.45, 1.8);
@@ -162,17 +162,17 @@ function palm(mats, parent, x, z) {
   const g = new THREE.Group();
   g.position.set(x, LEVEL.sand, z);
   parent.add(g);
-  const trunk = put(g, new THREE.CylinderGeometry(0.14, 0.22, 3.4, 7), mats.get(P.trunk), 0.15, 1.7, 0);
+  const trunk = put(g, new THREE.CylinderGeometry(0.14, 0.22, 5.2, 7), mats.get(P.trunk), 0.15, 2.6, 0);
   trunk.rotation.z = 0.18;
   for (let i = 0; i < 6; i++) {
-    const leaf = put(g, new THREE.ConeGeometry(0.35, 1.8, 5), mats.get('#4f8a64'), 0.4, 3.5, 0, {
+    const leaf = put(g, new THREE.ConeGeometry(0.35, 1.8, 5), mats.get('#4f8a64'), 0.4, 5.2, 0, {
       cast: false,
     });
     leaf.rotation.z = 1.05;
     leaf.rotation.y = (i / 6) * Math.PI * 2;
   }
-  put(g, new THREE.SphereGeometry(0.18, 8, 6), mats.get('#e9b350'), 0.55, 3.15, 0.15, { cast: false });
-  put(g, new THREE.SphereGeometry(0.16, 8, 6), mats.get('#e9b350'), 0.35, 3.05, -0.2, { cast: false });
+  put(g, new THREE.SphereGeometry(0.18, 8, 6), mats.get('#e9b350'), 0.55, 4.9, 0.15, { cast: false });
+  put(g, new THREE.SphereGeometry(0.16, 8, 6), mats.get('#e9b350'), 0.35, 4.8, -0.2, { cast: false });
 }
 
 /** 浅海珊瑚与海草（略高出海底，透过浅滩可见）。 */
@@ -315,6 +315,8 @@ export function buildPeople(mats, parent) {
 function person(mats, seed) {
   const rnd = seeded(900 + seed);
   const g = new THREE.Group();
+  // ~1.55 m clay adult so doors / stalls / fences read correctly
+  g.scale.setScalar(1.15);
   const shirt = P.shirt[Math.floor(rnd() * P.shirt.length)];
   put(g, new THREE.CylinderGeometry(0.22, 0.26, 0.7, 8), mats.get(shirt), 0, 0.55, 0);
   put(g, new THREE.SphereGeometry(0.22, 10, 8), mats.get(P.skin), 0, 1.1, 0);
@@ -367,9 +369,10 @@ export function buildFishSchools(mats, parent) {
     schools.add(school);
   });
 
-  // 海豚跃出水面
+  // 海豚跃出水面（约 2.5–3 m 体长）
   for (let i = 0; i < 3; i++) {
     const dolphin = new THREE.Group();
+    dolphin.scale.setScalar(2.0);
     const body = put(dolphin, new THREE.SphereGeometry(0.45, 10, 8), mats.get(P.fish[3] || '#6c8ca4'), 0, 0, 0, {
       cast: false,
     });

@@ -141,7 +141,8 @@ function makeLongTit(mats) {
   bird.userData.wings = { left: leftWing, right: rightWing };
   bird.userData.tail = tail;
   bird.userData.head = head;
-  bird.scale.setScalar(1.85);
+  // ~0.55 m tip-to-tail — smaller than sparrows, readable at pavilion
+  bird.scale.setScalar(0.38);
   return bird;
 }
 

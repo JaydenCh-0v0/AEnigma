@@ -163,7 +163,8 @@ function makeSparrow(mats) {
   left.root.rotation.x = -0.35;
   right.root.rotation.x = -0.35;
 
-  bird.scale.setScalar(1.7);
+  // ~0.5 m length — soft-clay tree sparrow vs ~1.5 m people
+  bird.scale.setScalar(0.45);
   return bird;
 }
 
@@ -357,7 +358,7 @@ export function buildSparrows(mats, parent) {
         const u = Math.min(1, b.hopT);
         const ease = u * u * (3 - 2 * u);
         b.pos.lerpVectors(b.hopFrom, b.hopTo, ease);
-        b.pos.y = groundY + Math.sin(Math.PI * u) * 0.28;
+        b.pos.y = groundY + Math.sin(Math.PI * u) * 0.14;
         b.mesh.position.copy(b.pos);
         aim.position.copy(b.pos);
         aim.lookAt(b.hopTo.x, b.pos.y, b.hopTo.z);

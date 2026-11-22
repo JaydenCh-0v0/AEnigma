@@ -156,9 +156,9 @@ function rocks(mats, parent) {
     const th = rnd() * Math.PI * 2;
     if (Math.abs(wrapAngle(th - Math.PI / 2)) < 0.38 || Math.abs(wrapAngle(th)) < 0.12) continue;
     const r = rad(th, 1.02);
-    const s = 0.7 + rnd() * 0.9;
-    const m = put(parent, g, mats.get(P.rock), Math.cos(th) * r, 0.3, Math.sin(th) * r);
-    m.scale.set(s * (1 + rnd() * 0.5), s * 0.7, s);
+    const s = 0.35 + rnd() * 0.45;
+    const m = put(parent, g, mats.get(P.rock), Math.cos(th) * r, 0.22, Math.sin(th) * r);
+    m.scale.set(s * (1 + rnd() * 0.4), s * 0.65, s);
     m.rotation.set(rnd(), rnd() * 6, rnd());
   }
 }
