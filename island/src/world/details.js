@@ -320,6 +320,7 @@ function person(mats, seed) {
 
 export { buildBirds } from './birds.js';
 export { buildSparrows } from './sparrows.js';
+export { buildLongTits } from './longTits.js';
 
 /** 近海鱼群与鳐鱼：贴着水面下掠过。 */
 export function buildFishSchools(mats, parent) {
