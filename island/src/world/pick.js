@@ -79,15 +79,15 @@ function makeMarker() {
     depthWrite: false,
   });
 
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.07, 8, 24), ringMat);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.1, 8, 28), ringMat);
   ring.rotation.x = Math.PI / 2;
   g.add(ring);
 
-  const core = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), coreMat);
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), coreMat);
   g.add(core);
 
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.6, 6), stemMat);
-  stem.position.y = -0.9;
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.2, 6), stemMat);
+  stem.position.y = -1.2;
   g.add(stem);
 
   g.userData.ring = ring;
