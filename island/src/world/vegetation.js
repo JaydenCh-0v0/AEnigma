@@ -48,7 +48,7 @@ function pineCrown(mats, g, c) {
 function tree(mats, parent, x, z, y, rnd, scale = 1, kind = 'round') {
   const g = new THREE.Group();
   g.position.set(x, y, z);
-  g.scale.setScalar(scale * (0.8 + rnd() * 0.45));
+  g.scale.setScalar(scale * (1.25 + rnd() * 0.55));
   g.rotation.y = rnd() * 6;
   parent.add(g);
 
@@ -155,7 +155,7 @@ export function buildMeadow(mats, parent) {
       if (y < LEVEL.grass || y >= LEVEL.upper || blocked(x, z)) continue;
       const flower = makeFlower(mats, rnd);
       flower.position.set(x, y, z);
-      flower.scale.multiplyScalar(1.05 + rnd() * 0.2);
+      flower.scale.multiplyScalar(1.0 + rnd() * 0.15);
       parent.add(flower);
     }
   }

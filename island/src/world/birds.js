@@ -105,7 +105,8 @@ function makeSeagull(mats) {
     rightTip: right.tip,
   };
 
-  bird.scale.setScalar(1.9);
+  // ~1.1 m body / ~2.2 m span — soft-clay gull, clearly smaller than cottages
+  bird.scale.setScalar(0.55);
   return bird;
 }
 

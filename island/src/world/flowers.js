@@ -255,8 +255,8 @@ export function makeFlower(mats, rnd) {
   const flower = kind.build(mats, rnd, PALETTES[kind.name]);
   flower.userData.flowerKind = kind.name;
   flower.rotation.y = rnd() * Math.PI * 2;
-  // 软陶花圃：比真实比例略大，保证种类剪影可读
-  const s = 1.55 + rnd() * 0.65;
+  // 贴近花园尺度：多数 ~0.4–0.7 m，向日葵略高仍可读
+  const s = 0.95 + rnd() * 0.45;
   flower.scale.setScalar(s);
   return flower;
 }
