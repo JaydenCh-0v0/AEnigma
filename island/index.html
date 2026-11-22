@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>青屿 · Qingyu Island</title>
+    <meta name="description" content="一座可环视的软陶风 Three.js 小岛" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+
+      <div class="overlay" id="overlay">
+        <header class="brand">
+          <p class="brand-kicker">A soft-clay archipelago</p>
+          <p class="brand-mark">青屿</p>
+          <h1>Qingyu Island</h1>
+          <p class="tagline">软陶海岸 · 点景漫游 · 随光而变</p>
+        </header>
+
+        <div class="cta-row">
+          <button type="button" class="cta" id="enterBtn">上岛逛逛</button>
+          <button type="button" class="ghost" id="resetViewBtn">回到全景</button>
+        </div>
+      </div>
+
+      <article class="spot-card" id="spotCard" hidden>
+        <p class="spot-kicker">地点</p>
+        <h2 id="spotTitle">灯塔岬</h2>
+        <p id="spotBody">介绍</p>
+        <button type="button" class="spot-close" id="spotClose">收起</button>
+      </article>
+
+      <aside class="hud" id="hud" aria-label="场景控制">
+        <label class="hud-field">
+          <span>时辰</span>
+          <input id="hourSlider" type="range" min="0" max="24" step="0.05" value="10" />
+          <em id="hourLabel">10:00</em>
+        </label>
+        <div class="hud-toggles" role="group" aria-label="氛围开关">
+          <button type="button" class="chip" id="autoHourBtn" aria-pressed="false">流转</button>
+          <button type="button" class="chip" id="soundBtn" aria-pressed="false">海声</button>
+          <button type="button" class="chip" id="markersBtn" aria-pressed="true">浮标</button>
+        </div>
+        <div class="view-chips" role="group" aria-label="预设视角">
+          <button type="button" data-view="all" class="chip active">全岛</button>
+          <button type="button" data-view="harbor" class="chip">港湾</button>
+          <button type="button" data-view="market" class="chip">夜市</button>
+          <button type="button" data-view="cape" class="chip">灯塔</button>
+          <button type="button" data-view="peak" class="chip">山顶</button>
+        </div>
+        <p class="hint">点青色浮标飞过去 · 拖拽环视 · 滚轮缩放</p>
+      </aside>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
