@@ -28,6 +28,8 @@ import {
   buildSmoke,
 } from './world/details.js';
 import { createCameraRig } from './world/camera.js';
+import { createPostFX } from './world/postfx.js';
+import { createHotspots, createPicker, resolveView } from './world/pick.js';
 import { formatHour } from './utils/math.js';
 
 const canvas = document.getElementById('scene');
@@ -37,6 +39,10 @@ const hourSlider = document.getElementById('hourSlider');
 const hourLabel = document.getElementById('hourLabel');
 const enterBtn = document.getElementById('enterBtn');
 const resetViewBtn = document.getElementById('resetViewBtn');
+const spotCard = document.getElementById('spotCard');
+const spotTitle = document.getElementById('spotTitle');
+const spotBody = document.getElementById('spotBody');
+const spotClose = document.getElementById('spotClose');
 
 const isMobile = window.matchMedia('(max-width: 720px)').matches;
 
@@ -81,6 +87,7 @@ const birds = buildBirds(mats, world);
 const fish = buildFishSchools(mats, world);
 const fireflies = buildFireflies(world);
 const smoke = buildSmoke(world);
+const hotspots = createHotspots(world);
 
 const ocean = createOcean();
 world.add(ocean.mesh);
@@ -95,6 +102,8 @@ sky.sun.shadow.mapSize.set(
   isMobile ? RENDER.shadowMapMobile : RENDER.shadowMapDesktop,
 );
 
+const postfx = createPostFX(renderer, scene, camera, { lite: isMobile });
+
 const lampLights = lampPosts.slice(0, isMobile ? 3 : 8).map((p) => {
   const l = new THREE.PointLight('#ffbf73', 0, 16, 1.4);
   l.position.copy(p);
@@ -102,7 +111,6 @@ const lampLights = lampPosts.slice(0, isMobile ? 3 : 8).map((p) => {
   return l;
 });
 
-// 夜市额外暖光
 const marketLight = new THREE.PointLight('#ffbf73', 0, 22, 1.3);
 marketLight.position.set(-18, 3.2, 22);
 world.add(marketLight);
@@ -116,27 +124,65 @@ function applyTime() {
   const result = sky.setHour(hour, renderer, scene);
   night = result.night;
   lighthouse.windowMat.emissiveIntensity = night * 3.2;
-  lighthouse.bulbMat.emissiveIntensity = 0.2 + night * 4;
+  lighthouse.bulbMat.emissiveIntensity = 0.25 + night * 4.2;
   lighthouse.beam.intensity = night * 28;
   for (const l of lampLights) l.intensity = night * 28;
   marketLight.intensity = night * 22;
-  mats.bulb.emissiveIntensity = 0.15 + night * 3.5;
+  mats.bulb.emissiveIntensity = 0.2 + night * 3.8;
+  postfx.setNight(night);
 }
 
 applyTime();
 
+function setActiveChip(viewName) {
+  document.querySelectorAll('.chip').forEach((c) => {
+    c.classList.toggle('active', c.dataset.view === viewName);
+  });
+}
+
+function showSpot(spot) {
+  spotTitle.textContent = spot.title;
+  spotBody.textContent = spot.body;
+  spotCard.hidden = false;
+  requestAnimationFrame(() => spotCard.classList.add('is-visible'));
+}
+
+function hideSpot() {
+  spotCard.classList.remove('is-visible');
+  window.setTimeout(() => {
+    if (!spotCard.classList.contains('is-visible')) spotCard.hidden = true;
+  }, 280);
+}
+
 function revealHud() {
   overlay.classList.add('is-hidden');
   hud.classList.add('is-visible');
-  rig.setView('all');
 }
 
-enterBtn.addEventListener('click', revealHud);
+function focusSpot(spot) {
+  revealHud();
+  const view = resolveView(spot);
+  rig.flyTo(view, { smoothing: 4.4 });
+  if (typeof spot.view === 'string') setActiveChip(spot.view);
+  else setActiveChip('');
+  showSpot(spot);
+}
+
+enterBtn.addEventListener('click', () => {
+  revealHud();
+  rig.setView('all');
+  setActiveChip('all');
+  hideSpot();
+});
+
 resetViewBtn.addEventListener('click', () => {
   revealHud();
   rig.goHome();
-  document.querySelectorAll('.chip').forEach((c) => c.classList.toggle('active', c.dataset.view === 'all'));
+  setActiveChip('all');
+  hideSpot();
 });
+
+spotClose.addEventListener('click', hideSpot);
 
 hourSlider.addEventListener('input', () => {
   hour = Number(hourSlider.value);
@@ -146,11 +192,20 @@ hourSlider.addEventListener('input', () => {
 
 document.querySelectorAll('.chip').forEach((chip) => {
   chip.addEventListener('click', () => {
-    document.querySelectorAll('.chip').forEach((c) => c.classList.remove('active'));
-    chip.classList.add('active');
+    setActiveChip(chip.dataset.view);
     revealHud();
     rig.setView(chip.dataset.view);
+    const match = ['harbor', 'market', 'cape', 'peak'].includes(chip.dataset.view)
+      ? hotspots.meshes.find((m) => m.userData.hotspot.view === chip.dataset.view)
+      : null;
+    if (match) showSpot(match.userData.hotspot);
+    else hideSpot();
   });
+});
+
+createPicker(camera, canvas, hotspots.meshes, {
+  onPick: focusSpot,
+  onMiss: () => {},
 });
 
 window.addEventListener('resize', () => {
@@ -160,11 +215,11 @@ window.addEventListener('resize', () => {
   camera.fov = w / h < 1 ? 42 : 34;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h, false);
+  postfx.setSize(w, h);
 });
 
 const clock = new THREE.Clock();
 
-// 开场：从高空缓缓落到全景
 rig.state.look.set(...INTRO_FROM.look);
 rig.state.dist = INTRO_FROM.dist;
 rig.state.az = INTRO_FROM.az;
@@ -191,7 +246,6 @@ function frame() {
   animateFlags(world, t);
   animateSway(world, t);
 
-  // 篝火跳动
   world.traverse((o) => {
     if (o.userData.flame) {
       const f = o.userData.flame;
@@ -201,21 +255,15 @@ function frame() {
     }
   });
 
-  // 灯塔光束缓慢扫海
-  lighthouse.beam.target.position.set(
-    Math.cos(t * 0.35) * 40,
-    1,
-    Math.sin(t * 0.35) * 40,
-  );
+  lighthouse.beam.target.position.set(Math.cos(t * 0.35) * 40, 1, Math.sin(t * 0.35) * 40);
   lighthouse.beam.target.updateMatrixWorld();
 
-  renderer.render(scene, camera);
+  postfx.render();
   requestAnimationFrame(frame);
 }
 
 requestAnimationFrame(frame);
 
-// 首次交互后显示 HUD
 let revealed = false;
 const softReveal = () => {
   if (revealed) return;

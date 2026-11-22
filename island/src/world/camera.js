@@ -34,15 +34,19 @@ export function createCameraRig(camera, canvas) {
     camera.lookAt(state.look);
   }
 
-  function setView(name, intro = false) {
-    const v = VIEWS[name] || VIEWS.all;
+  function flyTo(view, { smoothing = 4.2 } = {}) {
+    const v = view || VIEWS.all;
     state.targetLook.set(...v.look);
     state.targetDist = v.dist;
     state.targetAz = v.az;
     state.targetTilt = v.tilt;
-    state.smoothing = intro ? 1.6 : 5.5;
+    state.smoothing = smoothing;
     state.inertiaAz = 0;
     state.inertiaTilt = 0;
+  }
+
+  function setView(name, intro = false) {
+    flyTo(VIEWS[name] || VIEWS.all, { smoothing: intro ? 1.6 : 5.5 });
   }
 
   function goHome() {
@@ -120,5 +124,5 @@ export function createCameraRig(camera, canvas) {
 
   applyToCamera();
 
-  return { setView, goHome, update, state };
+  return { setView, flyTo, goHome, update, state };
 }

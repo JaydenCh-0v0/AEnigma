@@ -359,40 +359,82 @@ export function buildBirds(mats, parent) {
   return flock;
 }
 
-/** 近海鱼群：贴着水面下掠过。 */
+/** 近海鱼群与鳐鱼：贴着水面下掠过。 */
 export function buildFishSchools(mats, parent) {
   const schools = new THREE.Group();
   schools.userData.dynamic = true;
   parent.add(schools);
 
   const geo = new THREE.ConeGeometry(0.12, 0.45, 5);
+  const routes = [
+    { cx: -5, cz: 40, r: 6, speed: 0.38, phase: 0.2, y: SEA_LEVEL - 0.35 },
+    { cx: 10, cz: 44, r: 7, speed: 0.42, phase: 1.4, y: SEA_LEVEL - 0.4 },
+    { cx: 28, cz: 22, r: 8, speed: 0.33, phase: 2.1, y: SEA_LEVEL - 0.32 },
+    { cx: -16, cz: 38, r: 9, speed: 0.3, phase: 3.2, y: SEA_LEVEL - 0.38 },
+    { cx: 18, cz: 36, r: 5.5, speed: 0.5, phase: 4.0, y: SEA_LEVEL - 0.28 },
+    { cx: 4, cz: 48, r: 11, speed: 0.26, phase: 5.1, y: SEA_LEVEL - 0.45 },
+  ];
 
-  for (let s = 0; s < 4; s++) {
+  routes.forEach((route, s) => {
     const school = new THREE.Group();
     const color = P.fish[s % P.fish.length];
-    for (let i = 0; i < 7; i++) {
-      const f = put(school, geo, mats.get(color), (i % 3) * 0.35 - 0.35, (i % 2) * 0.15, Math.floor(i / 3) * 0.4, {
-        cast: false,
-      });
+    const count = 8 + (s % 3);
+    for (let i = 0; i < count; i++) {
+      const f = put(
+        school,
+        geo,
+        mats.get(color),
+        (i % 4) * 0.32 - 0.48,
+        (i % 2) * 0.12,
+        Math.floor(i / 4) * 0.38,
+        { cast: false },
+      );
       f.rotation.x = Math.PI / 2;
+      f.scale.setScalar(0.75 + (i % 3) * 0.12);
     }
-    school.userData.route = {
-      cx: -5 + s * 12,
-      cz: 40 + (s % 2) * 8,
-      r: 6 + s,
-      speed: 0.35 + s * 0.08,
-      phase: s * 1.7,
-      y: SEA_LEVEL - 0.35,
-    };
+    school.userData.route = route;
     schools.add(school);
+  });
+
+  // 两只宽翼鳐
+  for (let i = 0; i < 2; i++) {
+    const ray = new THREE.Group();
+    const body = put(ray, new THREE.SphereGeometry(0.55, 10, 8), mats.get('#24323c'), 0, 0, 0, { cast: false });
+    body.scale.set(1.4, 0.28, 1.1);
+    const wingL = put(ray, new THREE.SphereGeometry(0.7, 10, 8), mats.get('#2c3a46'), -0.85, 0, 0, { cast: false });
+    wingL.scale.set(1.3, 0.12, 0.7);
+    const wingR = put(ray, new THREE.SphereGeometry(0.7, 10, 8), mats.get('#2c3a46'), 0.85, 0, 0, { cast: false });
+    wingR.scale.set(1.3, 0.12, 0.7);
+    put(ray, new THREE.ConeGeometry(0.08, 1.2, 5), mats.get('#1b242c'), 0, 0, -0.95, { cast: false }).rotation.x =
+      Math.PI / 2;
+    ray.userData.route = {
+      cx: 8 + i * 16,
+      cz: 34 + i * 4,
+      r: 14 + i * 3,
+      speed: 0.18 + i * 0.04,
+      phase: i * 2.4,
+      y: SEA_LEVEL - 0.7,
+      ray: true,
+    };
+    ray.userData.wings = [wingL, wingR];
+    schools.add(ray);
   }
 
   schools.userData.update = (t) => {
     schools.children.forEach((school) => {
       const r = school.userData.route;
       const a = t * r.speed + r.phase;
-      school.position.set(r.cx + Math.cos(a) * r.r, r.y + Math.sin(t * 2 + r.phase) * 0.08, r.cz + Math.sin(a) * r.r);
+      school.position.set(
+        r.cx + Math.cos(a) * r.r,
+        r.y + Math.sin(t * 2 + r.phase) * 0.08,
+        r.cz + Math.sin(a) * r.r,
+      );
       school.rotation.y = -a + Math.PI / 2;
+      if (school.userData.wings) {
+        const flap = Math.sin(t * 3.2 + r.phase) * 0.22;
+        school.userData.wings[0].rotation.z = flap;
+        school.userData.wings[1].rotation.z = -flap;
+      }
     });
   };
 

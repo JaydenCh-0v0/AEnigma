@@ -19,9 +19,10 @@
 
       <div class="overlay" id="overlay">
         <header class="brand">
+          <p class="brand-kicker">A soft-clay archipelago</p>
           <p class="brand-mark">青屿</p>
           <h1>Qingyu Island</h1>
-          <p class="tagline">软陶海岸 · 环岛漫游 · 随光而变</p>
+          <p class="tagline">软陶海岸 · 点景漫游 · 随光而变</p>
         </header>
 
         <div class="cta-row">
@@ -29,6 +30,13 @@
           <button type="button" class="ghost" id="resetViewBtn">回到全景</button>
         </div>
       </div>
+
+      <article class="spot-card" id="spotCard" hidden>
+        <p class="spot-kicker">地点</p>
+        <h2 id="spotTitle">灯塔岬</h2>
+        <p id="spotBody">介绍</p>
+        <button type="button" class="spot-close" id="spotClose">收起</button>
+      </article>
 
       <aside class="hud" id="hud" aria-label="场景控制">
         <label class="hud-field">
@@ -43,7 +51,7 @@
           <button type="button" data-view="cape" class="chip">灯塔</button>
           <button type="button" data-view="peak" class="chip">山顶</button>
         </div>
-        <p class="hint">拖拽环视 · 滚轮缩放 · 右键平移</p>
+        <p class="hint">点击地点飞过去 · 拖拽环视 · 滚轮缩放</p>
       </aside>
     </div>
     <script type="module" src="/src/main.js"></script>
