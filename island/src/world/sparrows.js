@@ -163,7 +163,8 @@ function makeSparrow(mats) {
   left.root.rotation.x = -0.35;
   right.root.rotation.x = -0.35;
 
-  bird.scale.setScalar(1.7);
+  // 软陶玩具尺度，夜市/港湾近景也能一眼认出
+  bird.scale.setScalar(3.2);
   return bird;
 }
 
@@ -184,27 +185,25 @@ export function buildSparrows(mats, parent) {
   const rnd = seeded(919);
   const groundY = LEVEL.grass + 0.22;
 
-  // 村庄、菜圃、夜市周边栖点（地面觅食）
+  // 夜市镜头焦点附近多放几只，其余散落村庄
   const perches = [
+    new THREE.Vector3(-18.5, groundY, 20.5),
+    new THREE.Vector3(-19.8, groundY, 21.2),
+    new THREE.Vector3(-17.2, groundY, 19.6),
+    new THREE.Vector3(-20.5, groundY, 19.0),
+    new THREE.Vector3(-16.0, groundY, 21.5),
+    new THREE.Vector3(-18.0, groundY, 18.2),
+    new THREE.Vector3(-21.2, groundY, 21.8),
+    new THREE.Vector3(-15.5, groundY, 18.8),
     new THREE.Vector3(7.2, groundY, 11.5),
     new THREE.Vector3(9.5, groundY, 8.8),
-    new THREE.Vector3(11.2, groundY, 7.2),
-    new THREE.Vector3(4.2, groundY, 13.5),
-    new THREE.Vector3(6.5, groundY, 15.2),
-    new THREE.Vector3(-17.2, groundY, 15.5),
-    new THREE.Vector3(-20.5, groundY, 12.2),
-    new THREE.Vector3(-21.0, groundY, 9.5),
-    new THREE.Vector3(13.2, groundY, -0.5),
-    new THREE.Vector3(15.5, groundY, 0.8),
-    new THREE.Vector3(-16.5, groundY, 19.5),
-    new THREE.Vector3(-19.5, groundY, 20.5),
-    new THREE.Vector3(-14.8, groundY, 18.0),
-    new THREE.Vector3(2.5, groundY, 12.0),
-    new THREE.Vector3(10.0, groundY, 12.5),
-    new THREE.Vector3(-6.0, groundY, 16.0),
+    new THREE.Vector3(5.5, groundY, 14.0),
+    new THREE.Vector3(12.0, groundY, 6.5),
+    new THREE.Vector3(-20.0, groundY, 11.0),
+    new THREE.Vector3(14.0, groundY, -1.0),
   ];
 
-  const COUNT = 12;
+  const COUNT = 14;
   const birds = [];
   const aim = new THREE.Object3D();
   const tmp = new THREE.Vector3();

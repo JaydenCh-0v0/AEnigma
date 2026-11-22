@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { put } from './geo.js';
 import { LEVEL } from './config.js';
+import { MAIN_PEAK, PEAK_TOP } from './terrain.js';
 import { seeded } from '../utils/math.js';
 
 /**
@@ -10,18 +11,18 @@ import { seeded } from '../utils/math.js';
  */
 
 const COLORS = {
-  crown: '#2a2420',
-  crownStripe: '#e8e2d6',
-  face: '#d4a090',
-  back: '#9aa3ac',
-  belly: '#f3e4de',
-  pink: '#e8b0a6',
-  silver: '#eef2f6',
-  wing: '#3f3a36',
-  tail: '#241f1c',
-  tailEdge: '#f5f7fa',
-  beak: '#2a2420',
-  eye: '#1a1816',
+  crown: '#1f1a18',
+  crownStripe: '#f4efe6',
+  face: '#e8b8a8',
+  back: '#c5ced6',
+  belly: '#fff8f4',
+  pink: '#f0b8b0',
+  silver: '#ffffff',
+  wing: '#2e2926',
+  tail: '#1a1614',
+  tailEdge: '#ffffff',
+  beak: '#1f1a18',
+  eye: '#111010',
   leg: '#5a4840',
 };
 
@@ -140,7 +141,8 @@ function makeLongTit(mats) {
   bird.userData.wings = { left: leftWing, right: rightWing };
   bird.userData.tail = tail;
   bird.userData.head = head;
-  bird.scale.setScalar(1.85);
+  // 软陶玩具尺度：山顶近景清晰，全岛也能瞥见
+  bird.scale.setScalar(3.8);
   return bird;
 }
 
@@ -150,29 +152,27 @@ export function buildLongTits(mats, parent) {
   parent.add(flock);
 
   const rnd = seeded(727);
-  const canopy = LEVEL.grass + 3.2;
+  const px = MAIN_PEAK.x;
+  const pz = MAIN_PEAK.z;
+  const py = PEAK_TOP;
 
-  // 树冠 / 灌丛顶栖点（山顶与林缘，避开地面）
+  // 只围着观景亭活动，保证「山顶」镜头一眼能看到
   const perches = [
-    new THREE.Vector3(-9, LEVEL.upper + 2.6, -9),
-    new THREE.Vector3(-5, LEVEL.upper + 2.3, -11),
-    new THREE.Vector3(-11, LEVEL.upper + 2.0, -7),
-    new THREE.Vector3(-7, LEVEL.upper + 2.8, -5),
-    new THREE.Vector3(-3, canopy + 1.2, -10),
-    new THREE.Vector3(1, canopy + 1.0, -9),
-    new THREE.Vector3(5, canopy + 1.4, -6),
-    new THREE.Vector3(8, canopy + 1.1, -3),
-    new THREE.Vector3(-14, canopy + 1.3, 6),
-    new THREE.Vector3(-12, canopy + 1.5, 10),
-    new THREE.Vector3(-6, canopy + 1.2, 8),
-    new THREE.Vector3(3, canopy + 1.4, 6),
-    new THREE.Vector3(7, canopy + 1.1, 4),
-    new THREE.Vector3(-1, canopy + 1.8, 2),
-    new THREE.Vector3(10, canopy + 0.9, 1),
-    new THREE.Vector3(-16, canopy + 1.2, 2),
+    new THREE.Vector3(px - 1.4, py + 1.25, pz + 0.8),
+    new THREE.Vector3(px + 1.3, py + 1.2, pz - 0.5),
+    new THREE.Vector3(px + 0.15, py + 2.45, pz + 0.15),
+    new THREE.Vector3(px - 2.2, py + 1.05, pz - 1.4),
+    new THREE.Vector3(px + 2.4, py + 1.1, pz + 1.3),
+    new THREE.Vector3(px - 0.9, py + 0.95, pz + 1.9),
+    new THREE.Vector3(px + 0.8, py + 0.9, pz - 1.8),
+    new THREE.Vector3(px - 2.8, py + 1.55, pz + 0.2),
+    new THREE.Vector3(px + 2.9, py + 1.5, pz - 0.3),
+    new THREE.Vector3(px - 1.6, py + 2.1, pz - 0.9),
+    new THREE.Vector3(px + 1.7, py + 2.0, pz + 0.7),
+    new THREE.Vector3(px, py + 1.7, pz + 1.4),
   ];
 
-  const COUNT = 10;
+  const COUNT = 12;
   const birds = [];
   const aim = new THREE.Object3D();
   const tmp = new THREE.Vector3();
@@ -186,7 +186,7 @@ export function buildLongTits(mats, parent) {
   // Follow-the-leader：共用一条过空地航线队列
   const convoy = {
     active: false,
-    cooldown: 1.2,
+    cooldown: 0.4,
   };
 
   for (let i = 0; i < COUNT; i++) {
@@ -256,9 +256,10 @@ export function buildLongTits(mats, parent) {
       b.mesh.position.z + Math.cos(b.lookYaw),
     );
     b.mesh.quaternion.copy(aim.quaternion);
-    // 倒挂时绕局部 X 翻转
+    // 轻量倒挂：侧倾探枝，避免整只钻进岩体
     if (b.hangAmt > 0.01) {
-      b.mesh.rotateX(b.hangAmt * Math.PI);
+      b.mesh.rotateX(b.hangAmt * 1.15);
+      b.mesh.rotateZ(b.hangAmt * 0.55);
     }
     foldWings(b, 0.88);
     const tail = b.mesh.userData.tail;
@@ -331,9 +332,11 @@ export function buildLongTits(mats, parent) {
       if (convoy.cooldown <= 0) {
         const lead = birds[0];
         let next = lead.perchIdx;
-        for (let k = 0; k < 6; k++) {
+        for (let k = 0; k < 8; k++) {
           next = Math.floor(rnd() * perches.length);
-          if (next !== lead.perchIdx && perches[next].distanceTo(perches[lead.perchIdx]) > 5) break;
+          const d = perches[next].distanceTo(perches[lead.perchIdx]);
+          // 短距过空地：仍跟飞，但不飞出山顶视野
+          if (next !== lead.perchIdx && d > 1.2 && d < 6.5) break;
         }
         startConvoy(next);
       }
@@ -350,8 +353,8 @@ export function buildLongTits(mats, parent) {
         setPerchPose(b, t);
         if (b.timer <= 0 && !convoy.active) {
           const r = rnd();
-          if (r < 0.55) enterHop(b, rnd);
-          else if (r < 0.8) enterHang(b, rnd);
+          if (r < 0.62) enterHop(b, rnd);
+          else if (r < 0.78) enterHang(b, rnd);
           else enterPerch(b, rnd);
         }
       } else if (b.state === STATES.HOP) {
