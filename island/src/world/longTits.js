@@ -141,8 +141,7 @@ function makeLongTit(mats) {
   bird.userData.wings = { left: leftWing, right: rightWing };
   bird.userData.tail = tail;
   bird.userData.head = head;
-  // 软陶玩具尺度：山顶近景清晰，全岛也能瞥见
-  bird.scale.setScalar(3.8);
+  bird.scale.setScalar(1.85);
   return bird;
 }
 

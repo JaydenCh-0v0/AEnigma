@@ -163,8 +163,7 @@ function makeSparrow(mats) {
   left.root.rotation.x = -0.35;
   right.root.rotation.x = -0.35;
 
-  // 软陶玩具尺度，夜市/港湾近景也能一眼认出
-  bird.scale.setScalar(3.2);
+  bird.scale.setScalar(1.7);
   return bird;
 }
 
