@@ -3,6 +3,7 @@ import { LEVEL, PALETTE as P } from './config.js';
 import { put } from './geo.js';
 import { groundY, inside } from './terrain.js';
 import { seeded } from '../utils/math.js';
+import { makeFlower } from './flowers.js';
 
 const FLAT = { flatShading: true };
 
@@ -122,26 +123,41 @@ export function buildForest(mats, parent) {
 
 export function buildMeadow(mats, parent) {
   const rnd = seeded(901);
-  const flowerColors = ['#d65a4a', '#e9b350', '#f0b8b0', '#b58ad6', '#fffaf0'];
-  const stem = new THREE.CylinderGeometry(0.02, 0.03, 0.35, 5);
-  const bloom = new THREE.SphereGeometry(0.12, 8, 6);
   const bush = new THREE.DodecahedronGeometry(0.55, 0);
 
-  for (let i = 0; i < 180; i++) {
+  // 软陶花圃：雏菊 / 郁金香 / 虞美人 / 风铃草 / 向日葵 / 三叶草 / 穗花
+  let flowerCount = 0;
+  for (let i = 0; i < 420 && flowerCount < 160; i++) {
     const a = rnd() * Math.PI * 2;
-    const r = 8 + Math.sqrt(rnd()) * 16;
+    const r = 7 + Math.sqrt(rnd()) * 17;
     const x = Math.cos(a) * r;
     const z = Math.sin(a) * r;
     const y = groundY(x, z);
     if (y < LEVEL.grass || y >= LEVEL.upper) continue;
     if (blocked(x, z)) continue;
-    const g = new THREE.Group();
-    g.position.set(x, y, z);
-    put(g, stem, mats.get('#4f8a64'), 0, 0.18, 0, { cast: false });
-    put(g, bloom, mats.get(flowerColors[Math.floor(rnd() * flowerColors.length)]), 0, 0.4, 0, {
-      cast: false,
-    }).scale.setScalar(0.7 + rnd() * 0.5);
-    parent.add(g);
+    const flower = makeFlower(mats, rnd);
+    flower.position.set(x, y, z);
+    parent.add(flower);
+    flowerCount++;
+  }
+
+  // 小路旁小花带，种类更密、更易近看
+  for (const [cx, cz, n] of [
+    [2, 12, 18],
+    [-16, 16, 16],
+    [10, 4, 14],
+    [-6, 8, 12],
+  ]) {
+    for (let i = 0; i < n; i++) {
+      const x = cx + (rnd() - 0.5) * 5.5;
+      const z = cz + (rnd() - 0.5) * 5.5;
+      const y = groundY(x, z);
+      if (y < LEVEL.grass || y >= LEVEL.upper || blocked(x, z)) continue;
+      const flower = makeFlower(mats, rnd);
+      flower.position.set(x, y, z);
+      flower.scale.multiplyScalar(1.05 + rnd() * 0.2);
+      parent.add(flower);
+    }
   }
 
   // 灌木丛

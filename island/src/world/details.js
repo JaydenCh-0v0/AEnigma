@@ -3,6 +3,7 @@ import { LEVEL, PALETTE as P, SEA_LEVEL } from './config.js';
 import { put, roundedBox } from './geo.js';
 import { rad, shoreDistance } from './terrain.js';
 import { seeded } from '../utils/math.js';
+import { makeFlower } from './flowers.js';
 
 /** 夜市摊位：西南半岛一带。 */
 export function buildMarket(mats, parent) {
@@ -68,12 +69,19 @@ export function buildHomeExtras(mats, parent) {
     put(g, new THREE.CylinderGeometry(0.05, 0.06, 0.9, 6), mats.get(P.woodDark), 1.7, 0.45, 1.8);
     put(g, roundedBox(0.35, 0.28, 0.22, 0.04), mats.get(P.roofRed), 1.7, 0.95, 1.8);
 
-    // 菜圃
+    // 菜圃 + 几株软陶花
     put(g, roundedBox(1.4, 0.18, 0.9, 0.06), mats.get('#7a5a3e'), -1.6, 0, 1.5, { cast: false });
     for (let i = 0; i < 3; i++) {
       put(g, new THREE.SphereGeometry(0.12, 8, 6), mats.get('#5f9a6a'), -2.0 + i * 0.4, 0.28, 1.5, {
         cast: false,
       });
+    }
+    const bedRnd = seeded(220 + Math.floor(x * 10 + z));
+    for (let i = 0; i < 2; i++) {
+      const flower = makeFlower(mats, bedRnd);
+      flower.position.set(-1.2 + i * 0.55, 0.12, 1.15);
+      flower.scale.setScalar(0.95);
+      g.add(flower);
     }
   }
 
