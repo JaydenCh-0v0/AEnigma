@@ -279,7 +279,7 @@ function frame() {
   ocean.update(t, night, sky.sunDir);
   boats.userData.bob(t);
   people.userData.update(t);
-  birds.userData.update(t);
+  birds.userData.update(t, dt);
   fish.userData.update(t);
   fireflies.update(t, night);
   smoke.userData.update(t);

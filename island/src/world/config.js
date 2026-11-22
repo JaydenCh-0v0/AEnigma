@@ -31,6 +31,8 @@ export const PALETTE = {
   coral: ['#c98a7c', '#9c8fbf', '#f08a4b'],
   fish: ['#4f7484', '#e9b350', '#d65a4a', '#35d2cb'],
   bird: '#f4efe6',
+  birdWing: '#e8e2d8',
+  birdBeak: '#e9b350',
   skin: '#f0d2b0',
   shirt: ['#3f88a6', '#d65a4a', '#5aa58c', '#e9b350'],
 };

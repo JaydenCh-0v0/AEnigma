@@ -318,46 +318,7 @@ function person(mats, seed) {
   return g;
 }
 
-/** 海鸟环岛飞行。 */
-export function buildBirds(mats, parent) {
-  const flock = new THREE.Group();
-  flock.userData.dynamic = true;
-  parent.add(flock);
-
-  const body = new THREE.ConeGeometry(0.18, 0.55, 5);
-  const wing = new THREE.PlaneGeometry(0.7, 0.22);
-
-  for (let i = 0; i < 10; i++) {
-    const b = new THREE.Group();
-    put(b, body, mats.get(P.bird), 0, 0, 0).rotation.x = Math.PI / 2;
-    const w1 = put(b, wing, mats.get(P.bird), 0.15, 0.05, 0, { cast: false });
-    const w2 = put(b, wing, mats.get(P.bird), -0.15, 0.05, 0, { cast: false });
-    w1.rotation.z = 0.3;
-    w2.rotation.z = -0.3;
-    b.userData.wings = [w1, w2];
-    b.userData.orbit = {
-      r: 38 + (i % 4) * 6,
-      h: 14 + (i % 3) * 4,
-      speed: 0.22 + (i % 5) * 0.04,
-      phase: (i / 10) * Math.PI * 2,
-    };
-    flock.add(b);
-  }
-
-  flock.userData.update = (t) => {
-    flock.children.forEach((b) => {
-      const o = b.userData.orbit;
-      const a = t * o.speed + o.phase;
-      b.position.set(Math.cos(a) * o.r, o.h + Math.sin(t * 1.5 + o.phase) * 0.8, Math.sin(a) * o.r);
-      b.rotation.y = -a + Math.PI / 2;
-      const flap = Math.sin(t * 10 + o.phase) * 0.45;
-      b.userData.wings[0].rotation.z = 0.25 + flap;
-      b.userData.wings[1].rotation.z = -0.25 - flap;
-    });
-  };
-
-  return flock;
-}
+export { buildBirds } from './birds.js';
 
 /** 近海鱼群与鳐鱼：贴着水面下掠过。 */
 export function buildFishSchools(mats, parent) {
