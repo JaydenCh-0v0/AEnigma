@@ -125,8 +125,9 @@ export function buildMeadow(mats, parent) {
   const flowerColors = ['#d65a4a', '#e9b350', '#f0b8b0', '#b58ad6', '#fffaf0'];
   const stem = new THREE.CylinderGeometry(0.02, 0.03, 0.35, 5);
   const bloom = new THREE.SphereGeometry(0.12, 8, 6);
+  const bush = new THREE.DodecahedronGeometry(0.55, 0);
 
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 180; i++) {
     const a = rnd() * Math.PI * 2;
     const r = 8 + Math.sqrt(rnd()) * 16;
     const x = Math.cos(a) * r;
@@ -141,5 +142,26 @@ export function buildMeadow(mats, parent) {
       cast: false,
     }).scale.setScalar(0.7 + rnd() * 0.5);
     parent.add(g);
+  }
+
+  // 灌木丛
+  for (let i = 0; i < 40; i++) {
+    const a = rnd() * Math.PI * 2;
+    const r = 10 + Math.sqrt(rnd()) * 14;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    const y = groundY(x, z);
+    if (y < LEVEL.grass || blocked(x, z)) continue;
+    const m = put(
+      parent,
+      bush,
+      mats.get(P.tree[Math.floor(rnd() * P.tree.length)], FLAT),
+      x,
+      y + 0.35,
+      z,
+      { cast: false },
+    );
+    m.scale.set(0.8 + rnd() * 0.6, 0.55 + rnd() * 0.35, 0.8 + rnd() * 0.6);
+    m.rotation.y = rnd() * 6;
   }
 }

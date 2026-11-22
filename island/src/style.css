@@ -187,8 +187,8 @@ body,
 
 .view-chips {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.4rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.35rem;
 }
 
 .chip {
@@ -241,6 +241,6 @@ body,
   }
 
   .view-chips {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }

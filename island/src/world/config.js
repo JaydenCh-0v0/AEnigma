@@ -26,6 +26,13 @@ export const PALETTE = {
   seaDeep: '#1c5fbf',
   foam: '#ffffff',
   seabed: '#ead6a5',
+  canopy: '#fffdf6',
+  cloth: ['#d65a4a', '#3f88a6', '#e9b350', '#5aa58c', '#f0b8b0'],
+  coral: ['#c98a7c', '#9c8fbf', '#f08a4b'],
+  fish: ['#4f7484', '#e9b350', '#d65a4a', '#35d2cb'],
+  bird: '#f4efe6',
+  skin: '#f0d2b0',
+  shirt: ['#3f88a6', '#d65a4a', '#5aa58c', '#e9b350'],
 };
 
 export const ISLAND_RADIUS = 30;
@@ -36,6 +43,7 @@ export const SEA_LEVEL = 0.35;
 export const VIEWS = {
   all: { look: [3, 3, 8], dist: 145, az: 0.62, tilt: 0.58 },
   harbor: { look: [0, 2.2, 28], dist: 58, az: 0.15, tilt: 0.42 },
+  market: { look: [-19, 2.2, 21], dist: 36, az: -0.55, tilt: 0.48 },
   cape: { look: [24, 5, 2], dist: 48, az: 1.35, tilt: 0.32 },
   peak: { look: [-8, 8, -8], dist: 42, az: -0.55, tilt: 0.55 },
 };

@@ -13,6 +13,20 @@ import {
   buildPier,
   buildVillage,
 } from './world/landmarks.js';
+import {
+  animateFlags,
+  animateSway,
+  buildBeach,
+  buildBirds,
+  buildFireflies,
+  buildFishSchools,
+  buildHomeExtras,
+  buildMarket,
+  buildPeople,
+  buildProps,
+  buildReef,
+  buildSmoke,
+} from './world/details.js';
 import { createCameraRig } from './world/camera.js';
 import { formatHour } from './utils/math.js';
 
@@ -52,11 +66,21 @@ scene.add(world);
 buildTerrain(mats, world);
 buildPier(mats, world);
 buildVillage(mats, world);
+buildHomeExtras(mats, world);
+buildMarket(mats, world);
 buildForest(mats, world);
 buildMeadow(mats, world);
+buildBeach(mats, world);
+buildReef(mats, world);
+buildProps(mats, world);
 const lighthouse = buildLighthouse(mats, world);
 const lampPosts = buildDecor(mats, world);
 const boats = buildBoats(mats, world);
+const people = buildPeople(mats, world);
+const birds = buildBirds(mats, world);
+const fish = buildFishSchools(mats, world);
+const fireflies = buildFireflies(world);
+const smoke = buildSmoke(world);
 
 const ocean = createOcean();
 world.add(ocean.mesh);
@@ -71,12 +95,17 @@ sky.sun.shadow.mapSize.set(
   isMobile ? RENDER.shadowMapMobile : RENDER.shadowMapDesktop,
 );
 
-const lampLights = lampPosts.slice(0, isMobile ? 2 : 5).map((p) => {
+const lampLights = lampPosts.slice(0, isMobile ? 3 : 8).map((p) => {
   const l = new THREE.PointLight('#ffbf73', 0, 16, 1.4);
   l.position.copy(p);
   world.add(l);
   return l;
 });
+
+// 夜市额外暖光
+const marketLight = new THREE.PointLight('#ffbf73', 0, 22, 1.3);
+marketLight.position.set(-18, 3.2, 22);
+world.add(marketLight);
 
 let hour = 10;
 let night = 0;
@@ -90,6 +119,8 @@ function applyTime() {
   lighthouse.bulbMat.emissiveIntensity = 0.2 + night * 4;
   lighthouse.beam.intensity = night * 28;
   for (const l of lampLights) l.intensity = night * 28;
+  marketLight.intensity = night * 22;
+  mats.bulb.emissiveIntensity = 0.15 + night * 3.5;
 }
 
 applyTime();
@@ -132,7 +163,6 @@ window.addEventListener('resize', () => {
 });
 
 const clock = new THREE.Clock();
-let autoHour = false;
 
 // 开场：从高空缓缓落到全景
 rig.state.look.set(...INTRO_FROM.look);
@@ -149,17 +179,27 @@ function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
 
-  if (autoHour) {
-    hour = (hour + dt * 0.15) % 24;
-    hourSlider.value = String(hour);
-    hourLabel.textContent = formatHour(hour);
-    applyTime();
-  }
-
   rig.update(dt);
   sky.update(dt, camera);
   ocean.update(t, night, sky.sunDir);
   boats.userData.bob(t);
+  people.userData.update(t);
+  birds.userData.update(t);
+  fish.userData.update(t);
+  fireflies.update(t, night);
+  smoke.userData.update(t);
+  animateFlags(world, t);
+  animateSway(world, t);
+
+  // 篝火跳动
+  world.traverse((o) => {
+    if (o.userData.flame) {
+      const f = o.userData.flame;
+      f.scale.setScalar(0.85 + Math.sin(t * 9) * 0.15);
+      f.material.emissiveIntensity = 0.6 + Math.sin(t * 11) * 0.35;
+      f.visible = night > 0.25;
+    }
+  });
 
   // 灯塔光束缓慢扫海
   lighthouse.beam.target.position.set(
