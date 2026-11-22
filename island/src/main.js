@@ -18,6 +18,7 @@ import {
   animateSway,
   buildBeach,
   buildBirds,
+  buildSparrows,
   buildFireflies,
   buildFishSchools,
   buildHomeExtras,
@@ -88,6 +89,7 @@ const lampPosts = buildDecor(mats, world);
 const boats = buildBoats(mats, world);
 const people = buildPeople(mats, world);
 const birds = buildBirds(mats, world);
+const sparrows = buildSparrows(mats, world);
 const fish = buildFishSchools(mats, world);
 const fireflies = buildFireflies(world);
 const smoke = buildSmoke(world);
@@ -280,6 +282,7 @@ function frame() {
   boats.userData.bob(t);
   people.userData.update(t);
   birds.userData.update(t, dt);
+  sparrows.userData.update(t, dt);
   fish.userData.update(t);
   fireflies.update(t, night);
   smoke.userData.update(t);
