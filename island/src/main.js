@@ -30,6 +30,7 @@ import {
 import { createCameraRig } from './world/camera.js';
 import { createPostFX } from './world/postfx.js';
 import { createHotspots, createPicker, resolveView } from './world/pick.js';
+import { createAmbient } from './world/ambient.js';
 import { formatHour } from './utils/math.js';
 
 const canvas = document.getElementById('scene');
@@ -43,6 +44,9 @@ const spotCard = document.getElementById('spotCard');
 const spotTitle = document.getElementById('spotTitle');
 const spotBody = document.getElementById('spotBody');
 const spotClose = document.getElementById('spotClose');
+const autoHourBtn = document.getElementById('autoHourBtn');
+const soundBtn = document.getElementById('soundBtn');
+const markersBtn = document.getElementById('markersBtn');
 
 const isMobile = window.matchMedia('(max-width: 720px)').matches;
 
@@ -103,6 +107,7 @@ sky.sun.shadow.mapSize.set(
 );
 
 const postfx = createPostFX(renderer, scene, camera, { lite: isMobile });
+const ambient = createAmbient();
 
 const lampLights = lampPosts.slice(0, isMobile ? 3 : 8).map((p) => {
   const l = new THREE.PointLight('#ffbf73', 0, 16, 1.4);
@@ -117,6 +122,8 @@ world.add(marketLight);
 
 let hour = 10;
 let night = 0;
+let autoHour = false;
+let activeSpotId = null;
 hourSlider.value = String(hour);
 hourLabel.textContent = formatHour(hour);
 
@@ -130,17 +137,19 @@ function applyTime() {
   marketLight.intensity = night * 22;
   mats.bulb.emissiveIntensity = 0.2 + night * 3.8;
   postfx.setNight(night);
+  ambient.setNight(night);
 }
 
 applyTime();
 
 function setActiveChip(viewName) {
-  document.querySelectorAll('.chip').forEach((c) => {
+  document.querySelectorAll('.view-chips .chip').forEach((c) => {
     c.classList.toggle('active', c.dataset.view === viewName);
   });
 }
 
 function showSpot(spot) {
+  activeSpotId = spot.id;
   spotTitle.textContent = spot.title;
   spotBody.textContent = spot.body;
   spotCard.hidden = false;
@@ -148,6 +157,7 @@ function showSpot(spot) {
 }
 
 function hideSpot() {
+  activeSpotId = null;
   spotCard.classList.remove('is-visible');
   window.setTimeout(() => {
     if (!spotCard.classList.contains('is-visible')) spotCard.hidden = true;
@@ -185,18 +195,41 @@ resetViewBtn.addEventListener('click', () => {
 spotClose.addEventListener('click', hideSpot);
 
 hourSlider.addEventListener('input', () => {
+  autoHour = false;
+  autoHourBtn.classList.remove('active');
+  autoHourBtn.setAttribute('aria-pressed', 'false');
   hour = Number(hourSlider.value);
   hourLabel.textContent = formatHour(hour);
   applyTime();
 });
 
-document.querySelectorAll('.chip').forEach((chip) => {
+autoHourBtn.addEventListener('click', () => {
+  autoHour = !autoHour;
+  autoHourBtn.classList.toggle('active', autoHour);
+  autoHourBtn.setAttribute('aria-pressed', String(autoHour));
+});
+
+soundBtn.addEventListener('click', async () => {
+  const on = await ambient.toggle();
+  soundBtn.classList.toggle('active', on);
+  soundBtn.setAttribute('aria-pressed', String(on));
+});
+
+markersBtn.addEventListener('click', () => {
+  const next = markersBtn.getAttribute('aria-pressed') !== 'true';
+  markersBtn.setAttribute('aria-pressed', String(next));
+  markersBtn.classList.toggle('active', next);
+  hotspots.setVisible(next);
+});
+markersBtn.classList.add('active');
+
+document.querySelectorAll('.view-chips .chip').forEach((chip) => {
   chip.addEventListener('click', () => {
     setActiveChip(chip.dataset.view);
     revealHud();
     rig.setView(chip.dataset.view);
     const match = ['harbor', 'market', 'cape', 'peak'].includes(chip.dataset.view)
-      ? hotspots.meshes.find((m) => m.userData.hotspot.view === chip.dataset.view)
+      ? hotspots.markers.find((m) => m.userData.hotspot.view === chip.dataset.view)
       : null;
     if (match) showSpot(match.userData.hotspot);
     else hideSpot();
@@ -234,6 +267,13 @@ function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
 
+  if (autoHour) {
+    hour = (hour + dt * 0.25) % 24;
+    hourSlider.value = String(hour);
+    hourLabel.textContent = formatHour(hour);
+    applyTime();
+  }
+
   rig.update(dt);
   sky.update(dt, camera);
   ocean.update(t, night, sky.sunDir);
@@ -243,6 +283,7 @@ function frame() {
   fish.userData.update(t);
   fireflies.update(t, night);
   smoke.userData.update(t);
+  hotspots.update(t, activeSpotId);
   animateFlags(world, t);
   animateSway(world, t);
 

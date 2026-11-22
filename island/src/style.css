@@ -194,6 +194,13 @@ body,
   opacity: 0.9;
 }
 
+.hud-toggles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  margin-bottom: 0.7rem;
+}
+
 .view-chips {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

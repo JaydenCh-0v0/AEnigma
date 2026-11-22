@@ -396,6 +396,30 @@ export function buildFishSchools(mats, parent) {
     schools.add(school);
   });
 
+  // 海豚跃出水面
+  for (let i = 0; i < 3; i++) {
+    const dolphin = new THREE.Group();
+    const body = put(dolphin, new THREE.SphereGeometry(0.45, 10, 8), mats.get(P.fish[3] || '#6c8ca4'), 0, 0, 0, {
+      cast: false,
+    });
+    body.scale.set(1.6, 0.7, 0.85);
+    put(dolphin, new THREE.ConeGeometry(0.18, 0.7, 6), mats.get('#6c8ca4'), 0, 0.15, 0.55, { cast: false }).rotation.x =
+      -0.4;
+    put(dolphin, new THREE.ConeGeometry(0.22, 0.55, 5), mats.get('#5a7a90'), 0, 0.45, -0.1, { cast: false });
+    put(dolphin, new THREE.ConeGeometry(0.12, 0.5, 5), mats.get('#5a7a90'), 0, 0, -0.75, { cast: false }).rotation.x =
+      Math.PI / 2;
+    dolphin.userData.route = {
+      cx: -8 + i * 14,
+      cz: 46 + i * 2,
+      r: 10 + i * 2,
+      speed: 0.28 + i * 0.05,
+      phase: i * 1.9,
+      y: SEA_LEVEL - 0.2,
+      dolphin: true,
+    };
+    schools.add(dolphin);
+  }
+
   // 两只宽翼鳐
   for (let i = 0; i < 2; i++) {
     const ray = new THREE.Group();
@@ -424,12 +448,16 @@ export function buildFishSchools(mats, parent) {
     schools.children.forEach((school) => {
       const r = school.userData.route;
       const a = t * r.speed + r.phase;
-      school.position.set(
-        r.cx + Math.cos(a) * r.r,
-        r.y + Math.sin(t * 2 + r.phase) * 0.08,
-        r.cz + Math.sin(a) * r.r,
-      );
+      let y = r.y + Math.sin(t * 2 + r.phase) * 0.08;
+      let pitch = 0;
+      if (r.dolphin) {
+        const leap = Math.sin(t * r.speed * 2.2 + r.phase);
+        y = SEA_LEVEL - 0.35 + Math.max(0, leap) * 2.4;
+        pitch = leap * 0.7;
+      }
+      school.position.set(r.cx + Math.cos(a) * r.r, y, r.cz + Math.sin(a) * r.r);
       school.rotation.y = -a + Math.PI / 2;
+      school.rotation.x = pitch;
       if (school.userData.wings) {
         const flap = Math.sin(t * 3.2 + r.phase) * 0.22;
         school.userData.wings[0].rotation.z = flap;
