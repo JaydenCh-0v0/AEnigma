@@ -262,3 +262,13 @@ export function makeFlower(mats, rnd) {
 }
 
 export const FLOWER_KINDS = KINDS.map((k) => k.name);
+
+/** 指定种类生成一株花（图鉴用）。 */
+export function makeFlowerKind(mats, kindName, rnd = Math.random) {
+  const kind = KINDS.find((k) => k.name === kindName) || KINDS[0];
+  const flower = kind.build(mats, rnd, PALETTES[kind.name]);
+  flower.userData.flowerKind = kind.name;
+  flower.rotation.y = rnd() * Math.PI * 2;
+  flower.scale.setScalar(1.15);
+  return flower;
+}

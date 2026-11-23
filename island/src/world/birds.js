@@ -20,7 +20,7 @@ const COLORS = {
   cap: '#6e6860',
 };
 
-function makeSeagull(mats) {
+export function makeSeagull(mats) {
   const bird = new THREE.Group();
   bird.userData.dynamic = true;
 

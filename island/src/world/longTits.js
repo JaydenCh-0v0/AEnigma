@@ -34,7 +34,7 @@ const STATES = {
   FLY: 'fly',
 };
 
-function makeLongTit(mats) {
+export function makeLongTit(mats) {
   const bird = new THREE.Group();
   bird.userData.dynamic = true;
 
