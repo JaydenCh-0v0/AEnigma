@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Materials, put, roundedBox, gableRoof } from './geo.js';
 import { PALETTE as P } from './config.js';
 import { makeSeagull } from './birds.js';
-import { makeSparrow } from './sparrows.js';
+import { flapSparrowWings, foldSparrowWings, makeSparrow } from './sparrows.js';
 import { makeLongTit } from './longTits.js';
 import { makeFlowerKind, FLOWER_KINDS } from './flowers.js';
 import { makeTree } from './vegetation.js';
@@ -76,30 +76,6 @@ function makeFish(mats) {
   const body = put(g, new THREE.ConeGeometry(0.18, 0.7, 6), mats.get(P.fish[1]), 0, 0.2, 0, { cast: false });
   body.rotation.x = Math.PI / 2;
   return g;
-}
-
-function foldSparrowWings(bird, amount) {
-  const a = THREE.MathUtils.clamp(amount, 0, 1);
-  const { leftRoot, rightRoot, leftTip, rightTip } = bird.userData.wings;
-  leftRoot.rotation.set(-0.25 * a, 1.35 * a, -0.35 * a);
-  rightRoot.rotation.set(-0.25 * a, -1.35 * a, 0.35 * a);
-  leftTip.rotation.set(0.1 * a, 0.4 * a, -0.5 * a);
-  rightTip.rotation.set(0.1 * a, -0.4 * a, 0.5 * a);
-  const sx = THREE.MathUtils.lerp(1, 0.42, a);
-  leftRoot.scale.set(sx, 0.85, THREE.MathUtils.lerp(1, 1.2, a));
-  rightRoot.scale.set(sx, 0.85, THREE.MathUtils.lerp(1, 1.2, a));
-}
-
-function flapSparrowWings(bird, t, amp) {
-  const { leftRoot, rightRoot, leftTip, rightTip } = bird.userData.wings;
-  leftRoot.scale.set(1, 1, 1);
-  rightRoot.scale.set(1, 1, 1);
-  const flap = Math.sin(t * 18) * amp * 0.85;
-  const tipLag = Math.sin(t * 18 + 0.85) * amp * 0.5;
-  leftRoot.rotation.set(0.06, 0.1, -0.2 + flap);
-  rightRoot.rotation.set(0.06, -0.1, 0.2 - flap);
-  leftTip.rotation.set(0.05, 0.08, -0.1 + tipLag);
-  rightTip.rotation.set(0.05, -0.08, 0.1 - tipLag);
 }
 
 function createSparrowDemo(bird) {

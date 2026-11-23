@@ -89,11 +89,37 @@ export function makeSparrow(mats) {
   put(bird, new THREE.SphereGeometry(0.028, 6, 5), mats.get(COLORS.black), 0.07, 0.2, -0.4, { cast: false });
   put(bird, new THREE.SphereGeometry(0.028, 6, 5), mats.get(COLORS.black), -0.07, 0.2, -0.4, { cast: false });
 
-  const tail = put(bird, new THREE.ConeGeometry(0.14, 0.28, 5), mats.get(COLORS.wing), 0, 0.1, 0.42, {
-    cast: false,
-  });
-  tail.rotation.x = Math.PI / 2;
-  tail.scale.set(1.2, 0.35, 1);
+  // 短尾扇：从臀后沿 +Z 伸出（与喙 -Z 相反），略下垂收束
+  const tail = new THREE.Group();
+  tail.position.set(0, 0.04, 0.3);
+  bird.add(tail);
+  put(
+    tail,
+    new THREE.BoxGeometry(0.2, 0.028, 0.32),
+    mats.get(COLORS.wing, { flatShading: true }),
+    0,
+    -0.02,
+    0.17,
+    { cast: false },
+  ).rotation.x = 0.12;
+  put(
+    tail,
+    new THREE.BoxGeometry(0.08, 0.022, 0.26),
+    mats.get(COLORS.back, { flatShading: true }),
+    0.055,
+    -0.01,
+    0.15,
+    { cast: false },
+  ).rotation.set(0.14, 0.05, 0.03);
+  put(
+    tail,
+    new THREE.BoxGeometry(0.08, 0.022, 0.26),
+    mats.get(COLORS.back, { flatShading: true }),
+    -0.055,
+    -0.01,
+    0.15,
+    { cast: false },
+  ).rotation.set(0.14, -0.05, -0.03);
 
   // 短腿
   put(bird, new THREE.CylinderGeometry(0.025, 0.03, 0.16, 5), mats.get(COLORS.leg), 0.06, -0.12, 0.02, {
@@ -104,46 +130,48 @@ export function makeSparrow(mats) {
   });
 
   function wingSide(sign) {
+    // 肩点在体侧；YXZ 便于先扫向身后再压向肋部
     const root = new THREE.Group();
-    root.position.set(0.1 * sign, 0.1, -0.02);
+    root.position.set(0.26 * sign, 0.05, 0.1);
+    root.rotation.order = 'YXZ';
     bird.add(root);
 
     const rootMesh = put(
       root,
-      new THREE.BoxGeometry(0.42, 0.1, 0.28),
+      new THREE.BoxGeometry(0.38, 0.07, 0.24),
       mats.get(COLORS.wing, { flatShading: true }),
-      0.2 * sign,
-      0.02,
+      0.17 * sign,
       0,
+      0.02,
       { cast: false },
     );
-    rootMesh.rotation.set(0.05, -0.08 * sign, 0.35 * sign);
+    rootMesh.rotation.set(0.03, -0.05 * sign, 0.1 * sign);
 
-    // 白色翼斑
     put(
       root,
-      new THREE.BoxGeometry(0.18, 0.04, 0.12),
+      new THREE.BoxGeometry(0.14, 0.03, 0.1),
       mats.get(COLORS.wingBar, { flatShading: true }),
-      0.18 * sign,
-      0.06,
+      0.15 * sign,
+      0.035,
       0.02,
       { cast: false },
     );
 
     const tip = new THREE.Group();
-    tip.position.set(0.4 * sign, 0.02, 0);
+    tip.position.set(0.34 * sign, 0.01, 0.02);
+    tip.rotation.order = 'YXZ';
     root.add(tip);
     const tipMesh = put(
       tip,
-      new THREE.BoxGeometry(0.28, 0.08, 0.2),
+      new THREE.BoxGeometry(0.24, 0.055, 0.16),
       mats.get(COLORS.back, { flatShading: true }),
-      0.12 * sign,
-      0.01,
+      0.09 * sign,
+      0,
       0.02,
       { cast: false },
     );
-    tipMesh.scale.set(1, 0.85, 0.75);
-    tipMesh.rotation.set(0.08, -0.15 * sign, 0.2 * sign);
+    tipMesh.scale.set(1, 0.85, 0.8);
+    tipMesh.rotation.set(0.05, -0.1 * sign, 0.1 * sign);
 
     return { root, tip };
   }
@@ -157,18 +185,48 @@ export function makeSparrow(mats) {
     rightTip: right.tip,
   };
   bird.userData.head = head;
+  bird.userData.tail = tail;
 
-  // 收翼默认：翼展折向尾巴，略贴肋
-  left.root.rotation.set(-0.25, 1.35, -0.35);
-  right.root.rotation.set(-0.25, -1.35, 0.35);
-  left.tip.rotation.set(0.1, 0.4, -0.5);
-  right.tip.rotation.set(0.1, -0.4, 0.5);
-  left.root.scale.set(0.42, 0.85, 1.2);
-  right.root.scale.set(0.42, 0.85, 1.2);
+  // 默认收翼贴肋
+  applyFoldPose(left.root, right.root, left.tip, right.tip, 1);
 
   // ~0.5 m length — soft-clay tree sparrow vs ~1.5 m people
   bird.scale.setScalar(0.45);
   return bird;
+}
+
+/** 收翼：翼面贴在身体两侧（薄面朝外），翼尖拖向尾巴（+Z） */
+function applyFoldPose(leftRoot, rightRoot, leftTip, rightTip, amount) {
+  const a = THREE.MathUtils.clamp(amount, 0, 1);
+  // YXZ：Ry 扫向身后 + Rx 把翼面立到肋侧，贴身而非横插成鳍
+  leftRoot.rotation.set(-1.45 * a, 1.54 * a, 0);
+  rightRoot.rotation.set(1.45 * a, -1.54 * a, 0);
+  // 翼尖顺主翼继续拖向尾羽，不要卷向头部
+  leftTip.rotation.set(0.08 * a, 0.12 * a, 0.1 * a);
+  rightTip.rotation.set(-0.08 * a, -0.12 * a, -0.1 * a);
+  // 压薄贴肋：sy 对应贴身厚度
+  const sx = THREE.MathUtils.lerp(1, 0.78, a);
+  const sy = THREE.MathUtils.lerp(1, 0.38, a);
+  const sz = THREE.MathUtils.lerp(1, 1.25, a);
+  leftRoot.scale.set(sx, sy, sz);
+  rightRoot.scale.set(sx, sy, sz);
+}
+
+export function foldSparrowWings(bird, amount) {
+  const { leftRoot, rightRoot, leftTip, rightTip } = bird.userData.wings;
+  applyFoldPose(leftRoot, rightRoot, leftTip, rightTip, amount);
+}
+
+export function flapSparrowWings(bird, t, amp, flapRate = 18, flapPhase = 0) {
+  const { leftRoot, rightRoot, leftTip, rightTip } = bird.userData.wings;
+  leftRoot.scale.set(1, 1, 1);
+  rightRoot.scale.set(1, 1, 1);
+  const flap = Math.sin(t * flapRate + flapPhase) * amp * 0.85;
+  const tipLag = Math.sin(t * flapRate + flapPhase + 0.85) * amp * 0.5;
+  leftRoot.rotation.set(0.05, 0.08, -0.18 + flap);
+  rightRoot.rotation.set(0.05, -0.08, 0.18 - flap);
+  leftTip.rotation.set(0.04, 0.06, -0.08 + tipLag);
+  rightTip.rotation.set(0.04, -0.06, 0.08 - tipLag);
 }
 
 function pickNextPerch(perches, current, rnd, occupied) {
@@ -260,30 +318,11 @@ export function buildSparrows(mats, parent) {
   }
 
   function foldWings(b, amount) {
-    const a = THREE.MathUtils.clamp(amount, 0, 1);
-    const { leftRoot, rightRoot, leftTip, rightTip } = b.mesh.userData.wings;
-    // 靠 Y 把左右翼展折向尾巴，略抬离地；缩 span 更贴身
-    leftRoot.rotation.set(-0.25 * a, 1.35 * a, -0.35 * a);
-    rightRoot.rotation.set(-0.25 * a, -1.35 * a, 0.35 * a);
-    leftTip.rotation.set(0.1 * a, 0.4 * a, -0.5 * a);
-    rightTip.rotation.set(0.1 * a, -0.4 * a, 0.5 * a);
-    const sx = THREE.MathUtils.lerp(1, 0.42, a);
-    const sz = THREE.MathUtils.lerp(1, 1.2, a);
-    leftRoot.scale.set(sx, 0.85, sz);
-    rightRoot.scale.set(sx, 0.85, sz);
+    foldSparrowWings(b.mesh, amount);
   }
 
   function flapWings(b, t, amp) {
-    const { leftRoot, rightRoot, leftTip, rightTip } = b.mesh.userData.wings;
-    leftRoot.scale.set(1, 1, 1);
-    rightRoot.scale.set(1, 1, 1);
-    const flap = Math.sin(t * b.flapRate + b.flapPhase) * amp * 0.85;
-    const tipLag = Math.sin(t * b.flapRate + b.flapPhase + 0.85) * amp * 0.5;
-    // 张开基线：左右翼略平展再扑打
-    leftRoot.rotation.set(0.06, 0.1, -0.2 + flap);
-    rightRoot.rotation.set(0.06, -0.1, 0.2 - flap);
-    leftTip.rotation.set(0.05, 0.08, -0.1 + tipLag);
-    rightTip.rotation.set(0.05, -0.08, 0.1 - tipLag);
+    flapSparrowWings(b.mesh, t, amp, b.flapRate, b.flapPhase);
   }
 
   function setGroundPose(b, t) {
