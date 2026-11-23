@@ -312,6 +312,10 @@ export function buildPeople(mats, parent) {
   return people;
 }
 
+export function makePerson(mats, seed = 0) {
+  return person(mats, seed);
+}
+
 function person(mats, seed) {
   const rnd = seeded(900 + seed);
   const g = new THREE.Group();

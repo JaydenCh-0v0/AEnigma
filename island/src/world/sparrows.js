@@ -30,7 +30,7 @@ const STATES = {
   FLY: 'fly',
 };
 
-function makeSparrow(mats) {
+export function makeSparrow(mats) {
   const bird = new THREE.Group();
   bird.userData.dynamic = true;
 

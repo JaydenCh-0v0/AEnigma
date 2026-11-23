@@ -33,6 +33,7 @@ import { createCameraRig } from './world/camera.js';
 import { createPostFX } from './world/postfx.js';
 import { createHotspots, createPicker, resolveView } from './world/pick.js';
 import { createAmbient } from './world/ambient.js';
+import { createCatalog } from './world/catalog.js';
 import { formatHour } from './utils/math.js';
 
 const canvas = document.getElementById('scene');
@@ -227,6 +228,8 @@ markersBtn.addEventListener('click', () => {
 });
 markersBtn.classList.add('active');
 
+const catalog = createCatalog();
+
 document.querySelectorAll('.view-chips .chip').forEach((chip) => {
   chip.addEventListener('click', () => {
     setActiveChip(chip.dataset.view);
@@ -306,6 +309,7 @@ function frame() {
   lighthouse.beam.target.updateMatrixWorld();
 
   postfx.render();
+  catalog.update(t, dt);
   requestAnimationFrame(frame);
 }
 

@@ -27,6 +27,7 @@
 
         <div class="cta-row">
           <button type="button" class="cta" id="enterBtn">上岛逛逛</button>
+          <button type="button" class="ghost" id="catalogOpenBtn">打开图鉴</button>
           <button type="button" class="ghost" id="resetViewBtn">回到全景</button>
         </div>
       </div>
@@ -48,6 +49,7 @@
           <button type="button" class="chip" id="autoHourBtn" aria-pressed="false">流转</button>
           <button type="button" class="chip" id="soundBtn" aria-pressed="false">海声</button>
           <button type="button" class="chip" id="markersBtn" aria-pressed="true">浮标</button>
+          <button type="button" class="chip" id="catalogBtn">图鉴</button>
         </div>
         <div class="view-chips" role="group" aria-label="预设视角">
           <button type="button" data-view="all" class="chip active">全岛</button>
@@ -58,6 +60,34 @@
         </div>
         <p class="hint">点青色浮标飞过去 · 拖拽环视 · 滚轮缩放</p>
       </aside>
+
+      <div class="catalog" id="catalog" aria-hidden="true">
+        <div class="catalog-backdrop" data-catalog-close></div>
+        <section class="catalog-book" role="dialog" aria-modal="true" aria-labelledby="catalogHeading">
+          <header class="catalog-head">
+            <div>
+              <p class="catalog-kicker">Qingyu Field Guide</p>
+              <h2 id="catalogHeading">青屿图鉴</h2>
+            </div>
+            <button type="button" class="catalog-x" id="catalogClose" aria-label="关闭图鉴">关闭</button>
+          </header>
+          <div class="catalog-body">
+            <aside class="catalog-side">
+              <div class="catalog-cats" id="catalogCats" role="tablist" aria-label="分类"></div>
+              <div class="catalog-list" id="catalogList" role="listbox" aria-label="物件列表"></div>
+            </aside>
+            <div class="catalog-stage">
+              <canvas id="catalogCanvas" aria-label="三维预览"></canvas>
+              <div class="catalog-meta">
+                <h3 id="catalogTitle">树麻雀</h3>
+                <p id="catalogBlurb">介绍</p>
+                <div class="catalog-actions" id="catalogActions" hidden></div>
+                <p class="catalog-hint">拖拽旋转预览 · 生灵可切换动作</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
     <script type="module" src="/src/main.js"></script>
   </body>
