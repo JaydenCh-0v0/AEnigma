@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { faceFlight } from './birdOrient.js';
 import { put } from './geo.js';
 import { seeded } from '../utils/math.js';
 
@@ -251,10 +252,8 @@ export function buildBirds(mats, parent) {
       }
       b.mesh.position.copy(b.pos);
 
-      // 朝向飞行方向
-      aim.position.copy(b.pos);
-      aim.lookAt(b.pos.x + b.vel.x, b.pos.y + b.vel.y, b.pos.z + b.vel.z);
-      baseQ.copy(aim.quaternion);
+      // 水平朝向；爬升由 pitch 单独处理，避免陡升时 lookAt 翻肚
+      faceFlight(aim, baseQ, b.pos, b.pos.x + b.vel.x, b.pos.z + b.vel.z, Math.atan2(b.vel.x, b.vel.z));
 
       right.set(1, 0, 0).applyQuaternion(baseQ);
       const latAccel = b.vel.clone().sub(b.prevVel).dot(right) / Math.max(dti, 0.001);

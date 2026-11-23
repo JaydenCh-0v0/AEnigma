@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { put } from './geo.js';
+import { faceFlight } from './birdOrient.js';
 import { LEVEL } from './config.js';
 import { seeded } from '../utils/math.js';
 
@@ -390,12 +391,11 @@ export function buildSparrows(mats, parent) {
         b.vel.subVectors(tmp, b.pos).multiplyScalar(1 / Math.max(dti, 0.001));
         b.pos.copy(tmp);
 
-        aim.position.copy(b.pos);
         const lookAhead = Math.min(1, Math.max(u, 0.05) + 0.08);
         const lx = THREE.MathUtils.lerp(b.flyStart.x, b.target.x, lookAhead);
         const lz = THREE.MathUtils.lerp(b.flyStart.z, b.target.z, lookAhead);
-        aim.lookAt(lx, b.pos.y + b.vel.y * 0.05, lz);
-        baseQ.copy(aim.quaternion);
+        // 水平 lookAt，爬升只进 pitch，避免倒着飞
+        faceFlight(aim, baseQ, b.pos, lx, lz, b.lookYaw);
 
         right.set(1, 0, 0).applyQuaternion(baseQ);
         const latAccel = b.vel.clone().sub(b.prevVel).dot(right) / Math.max(dti, 0.001);

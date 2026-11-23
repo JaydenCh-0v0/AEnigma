@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { put } from './geo.js';
+import { faceFlight } from './birdOrient.js';
 import { LEVEL } from './config.js';
 import { MAIN_PEAK, PEAK_TOP } from './terrain.js';
 import { seeded } from '../utils/math.js';
@@ -403,14 +404,16 @@ export function buildLongTits(mats, parent) {
         b.vel.subVectors(tmp, b.pos).multiplyScalar(1 / Math.max(dti, 0.001));
         b.pos.copy(tmp);
 
-        aim.position.copy(b.pos);
         const lookU = Math.min(1, u + 0.1);
-        aim.lookAt(
+        // 水平 lookAt，bounce 爬升只进 pitch，避免倒着飞
+        faceFlight(
+          aim,
+          baseQ,
+          b.pos,
           THREE.MathUtils.lerp(b.flyStart.x, b.target.x, lookU),
-          b.pos.y + b.vel.y * 0.04,
           THREE.MathUtils.lerp(b.flyStart.z, b.target.z, lookU),
+          b.lookYaw,
         );
-        baseQ.copy(aim.quaternion);
 
         right.set(1, 0, 0).applyQuaternion(baseQ);
         const latAccel = b.vel.clone().sub(b.prevVel).dot(right) / Math.max(dti, 0.001);
