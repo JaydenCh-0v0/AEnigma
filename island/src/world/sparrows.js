@@ -158,11 +158,13 @@ function makeSparrow(mats) {
   };
   bird.userData.head = head;
 
-  // 收翼默认姿态
-  left.root.rotation.z = 0.55;
-  right.root.rotation.z = -0.55;
-  left.root.rotation.x = -0.35;
-  right.root.rotation.x = -0.35;
+  // 收翼默认：翼展折向尾巴，略贴肋
+  left.root.rotation.set(-0.25, 1.35, -0.35);
+  right.root.rotation.set(-0.25, -1.35, 0.35);
+  left.tip.rotation.set(0.1, 0.4, -0.5);
+  right.tip.rotation.set(0.1, -0.4, 0.5);
+  left.root.scale.set(0.42, 0.85, 1.2);
+  right.root.scale.set(0.42, 0.85, 1.2);
 
   // ~0.5 m length — soft-clay tree sparrow vs ~1.5 m people
   bird.scale.setScalar(0.45);
@@ -260,25 +262,30 @@ export function buildSparrows(mats, parent) {
   }
 
   function foldWings(b, amount) {
+    const a = THREE.MathUtils.clamp(amount, 0, 1);
     const { leftRoot, rightRoot, leftTip, rightTip } = b.mesh.userData.wings;
-    leftRoot.rotation.z = THREE.MathUtils.lerp(0.12, 0.62, amount);
-    rightRoot.rotation.z = THREE.MathUtils.lerp(-0.12, -0.62, amount);
-    leftRoot.rotation.x = THREE.MathUtils.lerp(0.05, -0.4, amount);
-    rightRoot.rotation.x = THREE.MathUtils.lerp(0.05, -0.4, amount);
-    leftTip.rotation.z = THREE.MathUtils.lerp(0.05, 0.25, amount);
-    rightTip.rotation.z = THREE.MathUtils.lerp(-0.05, -0.25, amount);
+    // 靠 Y 把左右翼展折向尾巴，略抬离地；缩 span 更贴身
+    leftRoot.rotation.set(-0.25 * a, 1.35 * a, -0.35 * a);
+    rightRoot.rotation.set(-0.25 * a, -1.35 * a, 0.35 * a);
+    leftTip.rotation.set(0.1 * a, 0.4 * a, -0.5 * a);
+    rightTip.rotation.set(0.1 * a, -0.4 * a, 0.5 * a);
+    const sx = THREE.MathUtils.lerp(1, 0.42, a);
+    const sz = THREE.MathUtils.lerp(1, 1.2, a);
+    leftRoot.scale.set(sx, 0.85, sz);
+    rightRoot.scale.set(sx, 0.85, sz);
   }
 
   function flapWings(b, t, amp) {
     const { leftRoot, rightRoot, leftTip, rightTip } = b.mesh.userData.wings;
-    const flap = Math.sin(t * b.flapRate + b.flapPhase) * amp;
-    const tipLag = Math.sin(t * b.flapRate + b.flapPhase + 0.85) * amp * 0.55;
-    leftRoot.rotation.z = flap;
-    rightRoot.rotation.z = -flap;
-    leftRoot.rotation.x = 0.08;
-    rightRoot.rotation.x = 0.08;
-    leftTip.rotation.z = tipLag;
-    rightTip.rotation.z = -tipLag;
+    leftRoot.scale.set(1, 1, 1);
+    rightRoot.scale.set(1, 1, 1);
+    const flap = Math.sin(t * b.flapRate + b.flapPhase) * amp * 0.85;
+    const tipLag = Math.sin(t * b.flapRate + b.flapPhase + 0.85) * amp * 0.5;
+    // 张开基线：左右翼略平展再扑打
+    leftRoot.rotation.set(0.06, 0.1, -0.2 + flap);
+    rightRoot.rotation.set(0.06, -0.1, 0.2 - flap);
+    leftTip.rotation.set(0.05, 0.08, -0.1 + tipLag);
+    rightTip.rotation.set(0.05, -0.08, 0.1 - tipLag);
   }
 
   function setGroundPose(b, t) {
@@ -292,7 +299,7 @@ export function buildSparrows(mats, parent) {
       b.mesh.position.z + Math.cos(b.lookYaw),
     );
     b.mesh.quaternion.copy(aim.quaternion);
-    foldWings(b, 0.85);
+    foldWings(b, 1);
     const head = b.mesh.userData.head;
     if (head) head.rotation.x = -b.peckAmt * 0.9;
   }
@@ -376,7 +383,8 @@ export function buildSparrows(mats, parent) {
         b.mesh.quaternion.copy(aim.quaternion);
         // 跳跃时略抬头
         b.mesh.rotateX(-Math.sin(Math.PI * u) * 0.28);
-        foldWings(b, 0.7 + Math.sin(Math.PI * u) * 0.15);
+        // 跳跃仍保持收翼，仅中段略松一点
+        foldWings(b, 0.88 + Math.sin(Math.PI * u) * 0.08);
         if (u >= 1) {
           b.pos.copy(b.hopTo);
           b.pos.y = groundY;
@@ -419,9 +427,9 @@ export function buildSparrows(mats, parent) {
         b.mesh.position.copy(b.pos);
         b.mesh.quaternion.copy(baseQ).multiply(bankQ).multiply(pitchQ);
 
-        // 麻雀翅振更快，几乎不滑翔
-        const landing = u > 0.82;
-        flapWings(b, t, landing ? 0.55 : 1.05);
+        // 起飞/巡航扑翼；落地前收翼贴身
+        if (u > 0.78) foldWings(b, (u - 0.78) / 0.22);
+        else flapWings(b, t, 1.05);
         b.lookYaw = Math.atan2(b.target.x - b.flyStart.x, b.target.z - b.flyStart.z);
 
         if (u >= 1) {
