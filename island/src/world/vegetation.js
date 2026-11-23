@@ -45,6 +45,27 @@ function pineCrown(mats, g, c) {
   }
 }
 
+/** 单棵树（图鉴用，原点在根部）。 */
+export function makeTree(mats, kind = 'round', rnd = () => 0.5) {
+  const g = new THREE.Group();
+  g.scale.setScalar(1.35);
+  const conifer = kind === 'pine';
+  const colors = conifer ? P.conifer : P.tree;
+  const c = colors[Math.floor(rnd() * colors.length)];
+  put(
+    g,
+    new THREE.CylinderGeometry(0.14, 0.22, conifer ? 1.0 : 1.3, 7),
+    mats.get(P.trunk),
+    0,
+    conifer ? 0.5 : 0.65,
+    0,
+  );
+  if (kind === 'round') roundCrown(mats, g, c);
+  else if (kind === 'oak') oakCrown(mats, g, c, rnd);
+  else pineCrown(mats, g, c);
+  return g;
+}
+
 function tree(mats, parent, x, z, y, rnd, scale = 1, kind = 'round') {
   const g = new THREE.Group();
   g.position.set(x, y, z);

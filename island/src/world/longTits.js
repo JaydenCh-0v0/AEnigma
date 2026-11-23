@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { put } from './geo.js';
+import { faceFlight } from './birdOrient.js';
 import { LEVEL } from './config.js';
 import { MAIN_PEAK, PEAK_TOP } from './terrain.js';
 import { seeded } from '../utils/math.js';
@@ -33,7 +34,7 @@ const STATES = {
   FLY: 'fly',
 };
 
-function makeLongTit(mats) {
+export function makeLongTit(mats) {
   const bird = new THREE.Group();
   bird.userData.dynamic = true;
 
@@ -273,18 +274,26 @@ export function buildLongTits(mats, parent) {
   function startConvoy(toIdx) {
     convoy.active = true;
     convoy.cooldown = 3.5 + rnd() * 2.5;
+    // 跟飞同一方向，但落点分散到不同栖点——以前全员 toIdx 会叠成一团
+    const dests = perches.map((_, i) => i);
+    dests.sort((a, b) => {
+      const da = perches[a].distanceTo(perches[toIdx]);
+      const db = perches[b].distanceTo(perches[toIdx]);
+      return da - db || a - b;
+    });
     for (let i = 0; i < birds.length; i++) {
       const b = birds[i];
+      const dest = dests[i % dests.length];
       b.queueOrder = i;
       b.flyDelay = i * (0.11 + rnd() * 0.07);
       b.state = STATES.FLY;
       b.flyProgress = 0;
-      b.perchIdx = toIdx;
+      b.perchIdx = dest;
       b.flyStart.copy(b.pos);
-      b.target.copy(perches[toIdx]);
-      b.target.x += (rnd() - 0.5) * 0.45;
-      b.target.y += (rnd() - 0.5) * 0.2;
-      b.target.z += (rnd() - 0.5) * 0.45;
+      b.target.copy(perches[dest]);
+      b.target.x += (rnd() - 0.5) * 0.35;
+      b.target.y += (rnd() - 0.5) * 0.18;
+      b.target.z += (rnd() - 0.5) * 0.35;
       const dist = b.flyStart.distanceTo(b.target);
       b.flyDur = THREE.MathUtils.clamp(0.55 + dist * 0.1, 0.65, 1.6);
       b.bank = 0;
@@ -403,14 +412,16 @@ export function buildLongTits(mats, parent) {
         b.vel.subVectors(tmp, b.pos).multiplyScalar(1 / Math.max(dti, 0.001));
         b.pos.copy(tmp);
 
-        aim.position.copy(b.pos);
         const lookU = Math.min(1, u + 0.1);
-        aim.lookAt(
+        // 水平 lookAt，bounce 爬升只进 pitch，避免倒着飞
+        faceFlight(
+          aim,
+          baseQ,
+          b.pos,
           THREE.MathUtils.lerp(b.flyStart.x, b.target.x, lookU),
-          b.pos.y + b.vel.y * 0.04,
           THREE.MathUtils.lerp(b.flyStart.z, b.target.z, lookU),
+          b.lookYaw,
         );
-        baseQ.copy(aim.quaternion);
 
         right.set(1, 0, 0).applyQuaternion(baseQ);
         const latAccel = b.vel.clone().sub(b.prevVel).dot(right) / Math.max(dti, 0.001);
