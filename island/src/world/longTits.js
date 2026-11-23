@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { put } from './geo.js';
-import { faceFlight } from './birdOrient.js';
+import { applyAttitude, faceFlight, faceYaw } from './birdOrient.js';
 import { LEVEL } from './config.js';
 import { MAIN_PEAK, PEAK_TOP } from './terrain.js';
 import { seeded } from '../utils/math.js';
@@ -178,11 +178,8 @@ export function buildLongTits(mats, parent) {
   const aim = new THREE.Object3D();
   const tmp = new THREE.Vector3();
   const right = new THREE.Vector3();
-  const bankAxis = new THREE.Vector3(0, 0, 1);
-  const pitchAxis = new THREE.Vector3(1, 0, 0);
-  const bankQ = new THREE.Quaternion();
-  const pitchQ = new THREE.Quaternion();
   const baseQ = new THREE.Quaternion();
+  const attitudeQ = new THREE.Quaternion();
 
   // Follow-the-leader：共用一条过空地航线队列
   const convoy = {
@@ -250,18 +247,10 @@ export function buildLongTits(mats, parent) {
   function setPerchPose(b, t) {
     b.mesh.position.copy(b.pos);
     b.mesh.position.y += Math.sin(t * 3.5 + b.bob) * 0.01;
-    aim.position.copy(b.mesh.position);
-    aim.lookAt(
-      b.mesh.position.x + Math.sin(b.lookYaw),
-      b.mesh.position.y,
-      b.mesh.position.z + Math.cos(b.lookYaw),
-    );
-    b.mesh.quaternion.copy(aim.quaternion);
-    // 轻量倒挂：侧倾探枝，避免整只钻进岩体
-    if (b.hangAmt > 0.01) {
-      b.mesh.rotateX(b.hangAmt * 1.15);
-      b.mesh.rotateZ(b.hangAmt * 0.55);
-    }
+    faceYaw(baseQ, b.lookYaw);
+    // 轻量倒挂：侧倾探枝，避免整只钻进岩体 / 看起来像倒飞
+    applyAttitude(attitudeQ, baseQ, b.hangAmt * 0.55, b.hangAmt * 0.85);
+    b.mesh.quaternion.copy(attitudeQ);
     foldWings(b, 0.88);
     const tail = b.mesh.userData.tail;
     if (tail) {
@@ -373,9 +362,8 @@ export function buildLongTits(mats, parent) {
         b.pos.lerpVectors(b.hopFrom, b.hopTo, ease);
         b.pos.y += Math.sin(Math.PI * u) * 0.18;
         b.mesh.position.copy(b.pos);
-        aim.position.copy(b.pos);
-        aim.lookAt(b.hopTo.x, b.pos.y, b.hopTo.z);
-        b.mesh.quaternion.copy(aim.quaternion);
+        faceFlight(aim, baseQ, b.pos, b.hopTo.x, b.hopTo.z, b.lookYaw);
+        b.mesh.quaternion.copy(baseQ);
         foldWings(b, 0.65);
         const tail = b.mesh.userData.tail;
         if (tail) tail.rotation.y = Math.sin(u * Math.PI * 2) * 0.25;
@@ -413,7 +401,6 @@ export function buildLongTits(mats, parent) {
         b.pos.copy(tmp);
 
         const lookU = Math.min(1, u + 0.1);
-        // 水平 lookAt，bounce 爬升只进 pitch，避免倒着飞
         faceFlight(
           aim,
           baseQ,
@@ -426,12 +413,13 @@ export function buildLongTits(mats, parent) {
         right.set(1, 0, 0).applyQuaternion(baseQ);
         const latAccel = b.vel.clone().sub(b.prevVel).dot(right) / Math.max(dti, 0.001);
         b.bank += (THREE.MathUtils.clamp(-latAccel * 0.04, -0.55, 0.55) - b.bank) * (1 - Math.exp(-8 * dti));
-        bankQ.setFromAxisAngle(bankAxis, b.bank);
-        b.pitch += (THREE.MathUtils.clamp(b.vel.y * 0.07, -0.5, 0.4) - b.pitch) * (1 - Math.exp(-7 * dti));
-        pitchQ.setFromAxisAngle(pitchAxis, b.pitch);
+        const hSpd = Math.hypot(b.vel.x, b.vel.z);
+        b.pitch +=
+          (THREE.MathUtils.clamp(Math.atan2(b.vel.y, Math.max(hSpd, 0.4)), -0.5, 0.4) - b.pitch) *
+          (1 - Math.exp(-7 * dti));
 
         b.mesh.position.copy(b.pos);
-        b.mesh.quaternion.copy(baseQ).multiply(bankQ).multiply(pitchQ);
+        b.mesh.quaternion.copy(applyAttitude(attitudeQ, baseQ, b.bank, b.pitch));
         flapWings(b, t, u > 0.85 ? 0.5 : 1.15);
         const tail = b.mesh.userData.tail;
         if (tail) {

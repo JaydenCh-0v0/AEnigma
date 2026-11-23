@@ -7,7 +7,7 @@ import { makeLongTit } from './longTits.js';
 import { makeFlowerKind, FLOWER_KINDS } from './flowers.js';
 import { makeTree } from './vegetation.js';
 import { makePerson } from './details.js';
-import { faceFlight } from './birdOrient.js';
+import { applyAttitude, faceFlight, faceYaw } from './birdOrient.js';
 import { seeded } from '../utils/math.js';
 
 const FLOWER_LABELS = {
@@ -195,12 +195,15 @@ function createLongTitDemo(bird) {
         }
       } else if (action === 'hang') {
         const hang = 0.75 + Math.sin(t * 2) * 0.1;
-        bird.rotation.set(hang * 1.15, 0.2, hang * 0.55);
+        faceYaw(baseQ, 0.2);
+        applyAttitude(bird.quaternion, baseQ, hang * 0.55, hang * 0.85);
         fold(0.9);
         if (bird.userData.head) bird.userData.head.rotation.x = Math.sin(t * 8) * 0.15;
       } else if (action === 'hop') {
         u = (u + dt / 0.22) % 1;
         bird.position.set(Math.sin(u * Math.PI) * 0.35, Math.sin(Math.PI * u) * 0.18, u * 0.25);
+        faceFlight(aim, baseQ, bird.position, bird.position.x + 0.2, bird.position.z + 0.3, 0.4);
+        bird.quaternion.copy(baseQ);
         fold(0.65);
       } else if (action === 'fly') {
         u = (u + dt / 1.2) % 1;

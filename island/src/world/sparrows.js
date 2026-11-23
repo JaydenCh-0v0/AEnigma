@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { put } from './geo.js';
-import { faceFlight } from './birdOrient.js';
+import { applyAttitude, faceFlight, faceYaw } from './birdOrient.js';
 import { LEVEL } from './config.js';
 import { seeded } from '../utils/math.js';
 
@@ -217,11 +217,8 @@ export function buildSparrows(mats, parent) {
   const aim = new THREE.Object3D();
   const tmp = new THREE.Vector3();
   const right = new THREE.Vector3();
-  const bankAxis = new THREE.Vector3(0, 0, 1);
-  const pitchAxis = new THREE.Vector3(1, 0, 0);
-  const bankQ = new THREE.Quaternion();
-  const pitchQ = new THREE.Quaternion();
   const baseQ = new THREE.Quaternion();
+  const attitudeQ = new THREE.Quaternion();
 
   for (let i = 0; i < COUNT; i++) {
     const bird = makeSparrow(mats);
@@ -232,7 +229,8 @@ export function buildSparrows(mats, parent) {
 
     const yaw = rnd() * Math.PI * 2;
     bird.position.copy(perch);
-    bird.rotation.y = yaw;
+    faceYaw(baseQ, yaw);
+    bird.quaternion.copy(baseQ);
     flock.add(bird);
 
     birds.push({
@@ -291,14 +289,8 @@ export function buildSparrows(mats, parent) {
   function setGroundPose(b, t) {
     b.mesh.position.copy(b.pos);
     b.mesh.position.y = groundY + Math.sin(t * 2.2 + b.bob) * 0.012;
-    // lookAt：本地 -Z 朝向，与飞行姿态一致
-    aim.position.copy(b.mesh.position);
-    aim.lookAt(
-      b.mesh.position.x + Math.sin(b.lookYaw),
-      b.mesh.position.y,
-      b.mesh.position.z + Math.cos(b.lookYaw),
-    );
-    b.mesh.quaternion.copy(aim.quaternion);
+    faceYaw(baseQ, b.lookYaw);
+    b.mesh.quaternion.copy(baseQ);
     foldWings(b, 1);
     const head = b.mesh.userData.head;
     if (head) head.rotation.x = -b.peckAmt * 0.9;
@@ -378,11 +370,9 @@ export function buildSparrows(mats, parent) {
         b.pos.lerpVectors(b.hopFrom, b.hopTo, ease);
         b.pos.y = groundY + Math.sin(Math.PI * u) * 0.14;
         b.mesh.position.copy(b.pos);
-        aim.position.copy(b.pos);
-        aim.lookAt(b.hopTo.x, b.pos.y, b.hopTo.z);
-        b.mesh.quaternion.copy(aim.quaternion);
-        // 跳跃时略抬头
-        b.mesh.rotateX(-Math.sin(Math.PI * u) * 0.28);
+        faceFlight(aim, baseQ, b.pos, b.hopTo.x, b.hopTo.z, b.lookYaw);
+        applyAttitude(attitudeQ, baseQ, 0, -Math.sin(Math.PI * u) * 0.28);
+        b.mesh.quaternion.copy(attitudeQ);
         // 跳跃仍保持收翼，仅中段略松一点
         foldWings(b, 0.88 + Math.sin(Math.PI * u) * 0.08);
         if (u >= 1) {
@@ -412,20 +402,18 @@ export function buildSparrows(mats, parent) {
         const lookAhead = Math.min(1, Math.max(u, 0.05) + 0.08);
         const lx = THREE.MathUtils.lerp(b.flyStart.x, b.target.x, lookAhead);
         const lz = THREE.MathUtils.lerp(b.flyStart.z, b.target.z, lookAhead);
-        // 水平 lookAt，爬升只进 pitch，避免倒着飞
         faceFlight(aim, baseQ, b.pos, lx, lz, b.lookYaw);
 
         right.set(1, 0, 0).applyQuaternion(baseQ);
         const latAccel = b.vel.clone().sub(b.prevVel).dot(right) / Math.max(dti, 0.001);
         const targetBank = THREE.MathUtils.clamp(-latAccel * 0.05, -0.7, 0.7);
         b.bank += (targetBank - b.bank) * (1 - Math.exp(-7 * dti));
-        bankQ.setFromAxisAngle(bankAxis, b.bank);
-        const targetPitch = THREE.MathUtils.clamp(b.vel.y * 0.08, -0.55, 0.4);
+        const hSpd = Math.hypot(b.vel.x, b.vel.z);
+        const targetPitch = THREE.MathUtils.clamp(Math.atan2(b.vel.y, Math.max(hSpd, 0.5)), -0.55, 0.4);
         b.pitch += (targetPitch - b.pitch) * (1 - Math.exp(-6 * dti));
-        pitchQ.setFromAxisAngle(pitchAxis, b.pitch);
 
         b.mesh.position.copy(b.pos);
-        b.mesh.quaternion.copy(baseQ).multiply(bankQ).multiply(pitchQ);
+        b.mesh.quaternion.copy(applyAttitude(attitudeQ, baseQ, b.bank, b.pitch));
 
         // 起飞/巡航扑翼；落地前收翼贴身
         if (u > 0.78) foldWings(b, (u - 0.78) / 0.22);

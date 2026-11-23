@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { faceFlight } from './birdOrient.js';
+import { applyAttitude, faceFlight } from './birdOrient.js';
 import { put } from './geo.js';
 import { seeded } from '../utils/math.js';
 
@@ -166,11 +166,8 @@ export function buildBirds(mats, parent) {
   const home = new THREE.Vector3();
   const forward = new THREE.Vector3();
   const right = new THREE.Vector3();
-  const bankAxis = new THREE.Vector3(0, 0, 1);
-  const pitchAxis = new THREE.Vector3(1, 0, 0);
-  const bankQ = new THREE.Quaternion();
-  const pitchQ = new THREE.Quaternion();
   const baseQ = new THREE.Quaternion();
+  const attitudeQ = new THREE.Quaternion();
 
   const SEP_DIST = 4.2;
   const ALI_DIST = 9.5;
@@ -253,20 +250,19 @@ export function buildBirds(mats, parent) {
       }
       b.mesh.position.copy(b.pos);
 
-      // 水平朝向；爬升由 pitch 单独处理，避免陡升时 lookAt 翻肚
+      // 水平朝向（-Z 朝航向）；爬升只进 pitch
       faceFlight(aim, baseQ, b.pos, b.pos.x + b.vel.x, b.pos.z + b.vel.z, Math.atan2(b.vel.x, b.vel.z));
 
       right.set(1, 0, 0).applyQuaternion(baseQ);
       const latAccel = b.vel.clone().sub(b.prevVel).dot(right) / Math.max(dti, 0.001);
       const targetBank = THREE.MathUtils.clamp(-latAccel * 0.09, -0.85, 0.85);
       b.bank += (targetBank - b.bank) * (1 - Math.exp(-6.5 * dti));
-      bankQ.setFromAxisAngle(bankAxis, b.bank);
 
-      const targetPitch = THREE.MathUtils.clamp(b.vel.y * 0.14, -0.5, 0.45);
+      const hSpd = Math.hypot(b.vel.x, b.vel.z);
+      const targetPitch = THREE.MathUtils.clamp(Math.atan2(b.vel.y, Math.max(hSpd, 0.8)), -0.5, 0.45);
       b.pitch += (targetPitch - b.pitch) * (1 - Math.exp(-5.5 * dti));
-      pitchQ.setFromAxisAngle(pitchAxis, b.pitch);
 
-      b.mesh.quaternion.copy(baseQ).multiply(bankQ).multiply(pitchQ);
+      b.mesh.quaternion.copy(applyAttitude(attitudeQ, baseQ, b.bank, b.pitch));
 
       b.modeT -= dti;
       if (b.modeT <= 0) {
