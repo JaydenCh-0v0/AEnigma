@@ -169,7 +169,13 @@ function makeSparrow(mats) {
   return bird;
 }
 
-function pickNextPerch(perches, current, rnd) {
+function pickNextPerch(perches, current, rnd, occupied) {
+  // 优先空闲栖点，避免多只叠在同一点
+  const free = [];
+  for (let i = 0; i < perches.length; i++) {
+    if (i !== current && !occupied.has(i)) free.push(i);
+  }
+  if (free.length) return free[Math.floor(rnd() * free.length)];
   let next = current;
   for (let k = 0; k < 6; k++) {
     next = Math.floor(rnd() * perches.length);
@@ -324,7 +330,11 @@ export function buildSparrows(mats, parent) {
 
   function enterFly(b, rndLocal) {
     b.state = STATES.FLY;
-    b.perchIdx = pickNextPerch(perches, b.perchIdx, rndLocal);
+    const occupied = new Set();
+    for (const o of birds) {
+      if (o !== b) occupied.add(o.perchIdx);
+    }
+    b.perchIdx = pickNextPerch(perches, b.perchIdx, rndLocal, occupied);
     b.flyStart.copy(b.pos);
     b.target.copy(perches[b.perchIdx]);
     b.target.x += (rndLocal() - 0.5) * 0.7;

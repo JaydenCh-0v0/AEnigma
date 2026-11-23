@@ -274,18 +274,26 @@ export function buildLongTits(mats, parent) {
   function startConvoy(toIdx) {
     convoy.active = true;
     convoy.cooldown = 3.5 + rnd() * 2.5;
+    // 跟飞同一方向，但落点分散到不同栖点——以前全员 toIdx 会叠成一团
+    const dests = perches.map((_, i) => i);
+    dests.sort((a, b) => {
+      const da = perches[a].distanceTo(perches[toIdx]);
+      const db = perches[b].distanceTo(perches[toIdx]);
+      return da - db || a - b;
+    });
     for (let i = 0; i < birds.length; i++) {
       const b = birds[i];
+      const dest = dests[i % dests.length];
       b.queueOrder = i;
       b.flyDelay = i * (0.11 + rnd() * 0.07);
       b.state = STATES.FLY;
       b.flyProgress = 0;
-      b.perchIdx = toIdx;
+      b.perchIdx = dest;
       b.flyStart.copy(b.pos);
-      b.target.copy(perches[toIdx]);
-      b.target.x += (rnd() - 0.5) * 0.45;
-      b.target.y += (rnd() - 0.5) * 0.2;
-      b.target.z += (rnd() - 0.5) * 0.45;
+      b.target.copy(perches[dest]);
+      b.target.x += (rnd() - 0.5) * 0.35;
+      b.target.y += (rnd() - 0.5) * 0.18;
+      b.target.z += (rnd() - 0.5) * 0.35;
       const dist = b.flyStart.distanceTo(b.target);
       b.flyDur = THREE.MathUtils.clamp(0.55 + dist * 0.1, 0.65, 1.6);
       b.bank = 0;

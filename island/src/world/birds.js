@@ -172,7 +172,7 @@ export function buildBirds(mats, parent) {
   const pitchQ = new THREE.Quaternion();
   const baseQ = new THREE.Quaternion();
 
-  const SEP_DIST = 3.4;
+  const SEP_DIST = 4.2;
   const ALI_DIST = 9.5;
   const COH_DIST = 12.5;
   const MAX_FORCE = 15;
@@ -215,17 +215,18 @@ export function buildBirds(mats, parent) {
       if (sepN) {
         sep.divideScalar(sepN).normalize().multiplyScalar(MAX_SPEED).sub(b.vel);
         clampVec(sep, MAX_FORCE);
-        steer.addScaledVector(sep, 1.45);
+        // 分离略强于聚合，避免长时间后挤成一点
+        steer.addScaledVector(sep, 1.85);
       }
       if (aliN) {
         ali.divideScalar(aliN).normalize().multiplyScalar(MAX_SPEED).sub(b.vel);
         clampVec(ali, MAX_FORCE);
-        steer.addScaledVector(ali, 0.9);
+        steer.addScaledVector(ali, 0.85);
       }
       if (cohN) {
         coh.divideScalar(cohN).sub(b.pos).normalize().multiplyScalar(MAX_SPEED).sub(b.vel);
         clampVec(coh, MAX_FORCE);
-        steer.addScaledVector(coh, 0.75);
+        steer.addScaledVector(coh, 0.55);
       }
 
       const flatR = Math.hypot(b.pos.x, b.pos.z);
